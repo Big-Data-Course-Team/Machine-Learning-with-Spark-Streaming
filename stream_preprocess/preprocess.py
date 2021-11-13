@@ -16,6 +16,10 @@ TCP_PORT = 6100
 # Each record in 'lines' is a line of text
 lines = ssc.socketTextStream("localhost", TCP_PORT)
 
+# The data is streamed as a JSON string (you can see this by observing the code in stream.py). 
+# You will first need to parse the JSON string, obtain the rows in each batch and then convert it to a DataFrame. 
+# The structure of the JSON string has been provided in the streaming file. 
+# Use this to parse your JSON to obtain rows, and then convert these rows into a DataFrame.
 
 # Start processing after all the transformations have been setup
 ssc.start()             # Start the computation
