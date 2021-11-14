@@ -15,7 +15,7 @@ from tqdm.auto import tqdm
 parser = argparse.ArgumentParser(
     description='Streams a file to a Spark Streaming Context')
 parser.add_argument('--file', '-f', help='File to stream', required=False,
-                    type=str, default="cifar")    # path to file for streaming
+                    type=str, default="sentiment")    # path to file for streaming
 parser.add_argument('--batch-size', '-b', help='Batch size',
                     required=False, type=int, default=100)  # default batch_size is 100
 parser.add_argument('--endless', '-e', help='Enable endless stream',
