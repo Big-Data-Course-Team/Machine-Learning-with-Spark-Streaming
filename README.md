@@ -9,7 +9,7 @@
 2. Processing the stream
 3. Building the model
 4. Testing the model
-5. clustering
+5. Clustering
 
 ### Machine Learning Pipeline Design
 1. 
