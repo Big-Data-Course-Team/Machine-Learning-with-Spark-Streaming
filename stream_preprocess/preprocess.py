@@ -2,6 +2,7 @@ from pyspark import SparkContext, SparkConf
 from pyspark.streaming import StreamingContext
 from pyspark.sql import SQLContext
 from pyspark.sql import SparkSession
+from pyspark.sql.types import *
 import json
 
 # Main entry point for all streaming functionality
@@ -24,16 +25,41 @@ sql_context = SQLContext(sc)
 TCP_IP = "localhost"
 TCP_PORT = 6100
 
+row_jsons = []
+
 # Create a DStream - represents the stream of data received from TCP source/data server
 # Each record in 'lines' is a line of text
 lines = ssc.socketTextStream(TCP_IP, TCP_PORT)
 
-parsed_json = lines.map(lambda x: json.loads(x))
+# Create schema
+schema = StructType([
+	StructField("feature0", StringType(), False),
+	StructField("feature1", StringType(), False),
+])
 
-parsed_json.pprint()
+# Create empty dataframe
+df = spark.sparkContext.emptyRDD().toDF(schema)
 
-#parsed_json = parsed_json.map(lambda i: [type(i), i])
-#parsed_json.pprint()
+# Each batch is a json
+batch_dict = lines.map(lambda b: json.loads(b))
+
+# Extract each individual row
+row_jsons = batch_dict.map(lambda y: list(map(lambda k: y[k], y)))
+
+#dfs = batch_dict.map(lambda y: spark.read.json(sc.parallelize( list(map(lambda k: json.dumps(y[k]), y))) ) )
+
+#row_jsons.pprint()
+
+def append_to_df(rdd):
+	global df, schema
+	df = df.union(spark.read.schema(schema).json(rdd))
+	df.show()
+	
+
+# Append each row to the dataframe	
+row_jsons.foreachRDD(lambda rdd: append_to_df(rdd))
+ 
+#df.show()
 
 
 # The data is streamed as a JSON string (you can see this by observing the code in stream.py). 
