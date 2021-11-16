@@ -52,7 +52,8 @@ row_jsons = batch_dict.map(lambda y: list(map(lambda k: y[k], y)))
 
 def append_to_df(rdd):
 	global df, schema
-	df = df.union(spark.read.schema(schema).json(rdd))
+	appended = df.union(spark.read.schema(schema).json(rdd))
+	df = appended
 	df.show()
 	
 
