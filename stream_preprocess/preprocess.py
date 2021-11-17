@@ -1,9 +1,8 @@
+import json
+
 from pyspark import SparkContext, SparkConf
 from pyspark.streaming import StreamingContext
-from pyspark.sql import SQLContext, Row
-from pyspark.sql import SparkSession
-from pyspark.sql.types import *
-import json
+from pyspark.sql import SQLContext, Row, SparkSession
 
 # Create a local StreamingContext with two execution threads
 sc = SparkContext("local[2]", "Sentiment")
