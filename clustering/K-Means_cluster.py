@@ -3,13 +3,13 @@ from pyspark.ml.evaluation import ClusteringEvaluator
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.feature import StandardScaler
 
- # vector assembler transforms  a set of features into a single vector
+#vector assembler not required if we are dealing with 1 column
+'''
+# vector assembler transforms  a set of features into a single vector
 assemble=VectorAssembler(inputCols=['SENTIMENT','TWEET'], outputCol='features')
-
-
-#df  is the batch dataframe 
+#df  is the batch dataframe after preprocessing
 assembled_data=assemble.transform(df)
-
+'''
 
 #standardizing the features column
 sc=StandardScaler(inputCol='features',outputCol='standardized')
