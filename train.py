@@ -16,7 +16,7 @@ from pyspark.ml.classification import LogisticRegression
 
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 
-from classification_models.pipeline_sparkml import model_pipeline,get_model
+from classification_models.pipeline_sparkml import custom_model_pipeline, ml_algorithm
 
 # Create a local StreamingContext with two execution threads
 sc = SparkContext("local[2]", "Sentiment")

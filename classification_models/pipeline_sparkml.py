@@ -46,7 +46,7 @@ def custom_model_pipeline(df, inputCols = ["tweet", "sentiment"], n=3):
     
     
     
-def get_model():
+def ml_algorithm():
 	lr= linear_model.SGDClassifier()
 	return lr
 
