@@ -1,7 +1,7 @@
 from pyspark.ml import Pipeline, PipelineModel
 from pyspark.ml.feature import HashingTF, IDF, Tokenizer
 from pyspark.ml.feature import NGram, VectorAssembler
-from pyspark.ml.feature import CountVectorizer
+from pyspark.ml.feature import CountVectorizer, CountVectorizerModel
 from pyspark.ml.feature import StringIndexer, ChiSqSelector
 
 from sklearn import linear_model
@@ -13,7 +13,7 @@ def custom_model_pipeline(df, inputCols = ["tweet", "sentiment"], n=3):
     
     # Converts the input string to lowercase, splits by white spaces
     tokenizer = Tokenizer(inputCol="tweet", outputCol="words")
-    df = tokenizer.transform(df)								# Needs no saving
+    df = tokenizer.transform(df)					# Needs no saving
     df.head()
     
     # Create three cols for each transformer
@@ -23,9 +23,15 @@ def custom_model_pipeline(df, inputCols = ["tweet", "sentiment"], n=3):
 		ngrams = NGram(n=n, inputCol="words", outputCol="{0}_grams".format(i))
 		df = ngrams.transform(df)					# Needs no saving
 
-		# Extracts a vocab from the tweet set
+		# Extracts the vocab from the set of tweets in batch - uses saved transformer
+		# Requires saving
 		cv = CountVectorizer(vocabSize=2**14, inputCol="{0}_grams".format(i), outputCol="{0}_tf".format(i))
-		df = cv.transform(cv)
+		cv_model = cv.fit(df).setInputCol("{0}_grams".format(i))
+		df = cv_model.transform(df)
+		
+		# Save CV transformer and model for iterative learning
+		cv.save("/count-vectorizer_{0}".format(i))
+		cv_model.save("/count-vectorizer-model_{0}".format(i))
 		
 		# Compute the IDF score given a set of tweets
 	    idf = IDF(inputCol="{0}_tf".format(i), outputCol="{0}_tfidf".format(i), minDocFreq=5)
