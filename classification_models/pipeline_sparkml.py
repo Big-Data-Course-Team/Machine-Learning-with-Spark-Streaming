@@ -7,36 +7,39 @@ from pyspark.ml.feature import StringIndexer, ChiSqSelector
 from sklearn import linear_model
 
 
-def model_pipeline(inputCol=["Tweet","Sentiment"], n=3):
+def custom_model_pipeline(df, inputCols = ["tweet", "sentiment"], n=3):
     
-    tokenizer = [Tokenizer(inputCol="Tweet", outputCol="words")]
+    # Feature transformers: Tokenizer, NGrams, CountVectorizer, IDF, VectorAssembler
     
-    ngrams = [
-        NGram(n=i, inputCol="words", outputCol="{0}_grams".format(i))
-        for i in range(1, n + 1)
-    ]
+    # Converts the input string to lowercase, splits by white spaces
+    tokenizer = Tokenizer(inputCol="tweet", outputCol="words")
+    df = tokenizer.transform(df)								# Needs no saving
+    df.head()
+    
+    # Create three cols for each transformer
+    for i in range(1, n+1):
+		
+		# Converts the input string to an array of n-grams (space-separated string of words)
+		ngrams = NGram(n=n, inputCol="words", outputCol="{0}_grams".format(i))
+		df = ngrams.transform(df)					# Needs no saving
 
-    cv = [
-        CountVectorizer(vocabSize=2**14,inputCol="{0}_grams".format(i),
-            outputCol="{0}_tf".format(i))
-        for i in range(1, n + 1)
-    ]
-    
-    idf = [IDF(inputCol="{0}_tf".format(i), outputCol="{0}_tfidf".format(i), minDocFreq=5) for i in range(1, n + 1)]
+		# Extracts a vocab from the tweet set
+		cv = CountVectorizer(vocabSize=2**14, inputCol="{0}_grams".format(i), outputCol="{0}_tf".format(i))
+		df = cv.transform(cv)
+		
+		# Compute the IDF score given a set of tweets
+	    idf = IDF(inputCol="{0}_tf".format(i), outputCol="{0}_tfidf".format(i), minDocFreq=5)
+		df = cv.transform(idf)
 
-    assembler = [VectorAssembler(
-        inputCols=["{0}_tfidf".format(i) for i in range(1, n + 1)],
-        outputCol="rawFeatures"
-    )]
+	# Merges multiple columns into a vector column
+	assembler = VectorAssembler(inputCols=["{0}_tfidf".format(i) for i in range(1, n + 1)], outputCol="rawFeatures")
     
-    label_stringIdx = [StringIndexer(inputCol = "Sentiment", outputCol = "label")]
+    label_stringIdx = StringIndexer(inputCol = "Sentiment", outputCol = "label")
     
-    selector = [ChiSqSelector(numTopFeatures=2**14,featuresCol='rawFeatures', outputCol="features")]
+    selector = ChiSqSelector(numTopFeatures=2**14,featuresCol='rawFeatures', outputCol="features")
     
-    #lr = [LogisticRegression(maxIter=100)]
     
-    return Pipeline(stages = tokenizer + ngrams + cv + idf + assembler + label_stringIdx + selector)
-
+    
 def get_model():
 	lr= linear_model.SGDClassifier()
 	return lr
