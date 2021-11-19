@@ -1,14 +1,3 @@
-from pyspark.ml import Pipeline
-from pyspark.ml.classification import LogisticRegression
-
-from pyspark.ml.feature import HashingTF, IDF, Tokenizer
-from pyspark.ml.feature import StringIndexer
-from pyspark.ml.feature import CountVectorizer
-from pyspark.ml.feature import NGram, VectorAssembler
-from pyspark.ml.feature import ChiSqSelector
-
-from pyspark.ml.evaluation import BinaryClassificationEvaluator
-
 def model_pipeline(inputCol=["Tweet","Sentiment"], n=3):
     
     tokenizer = [Tokenizer(inputCol="Tweet", outputCol="words")]
@@ -35,9 +24,14 @@ def model_pipeline(inputCol=["Tweet","Sentiment"], n=3):
     
     selector = [ChiSqSelector(numTopFeatures=2**14,featuresCol='rawFeatures', outputCol="features")]
     
-    lr = [LogisticRegression(maxIter=100)]
+    #lr = [LogisticRegression(maxIter=100)]
     
-    return Pipeline(stages = tokenizer + ngrams + cv + idf + assembler + label_stringIdx + selector + lr)
+    return Pipeline(stages = tokenizer + ngrams + cv + idf + assembler + label_stringIdx + selector)
+
+def get_model():
+	lr= linear_model.SGDClassifier()
+	return lr
+
     
     
 #To run (?)

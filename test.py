@@ -1,8 +1,30 @@
 import json
+import importlib
 
 from pyspark import SparkContext, SparkConf
 from pyspark.streaming import StreamingContext
 from pyspark.sql import SQLContext, Row, SparkSession
+
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+from pyspark.sql import functions as F
+
+from pyspark.ml import Pipeline
+from pyspark.ml.feature import StopWordsRemover, Word2Vec, RegexTokenizer
+from pyspark.ml.classification import LogisticRegression
+#from pyspark.mllib.classification import StreamingLogisticRegressionWithSGD
+
+
+from pyspark.ml.feature import HashingTF, IDF, Tokenizer
+from pyspark.ml.feature import StringIndexer
+from pyspark.ml.feature import CountVectorizer
+from pyspark.ml.feature import NGram, VectorAssembler
+from pyspark.ml.feature import ChiSqSelector
+
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+from spark_sklearn import linear_model
+
+from classification_models.pipeline_sparkml import model_pipeline
 
 # Create a local StreamingContext with two execution threads
 sc = SparkContext("local[2]", "Sentiment")
@@ -63,6 +85,22 @@ if __name__ == '__main__':
 	# You will first need to parse the JSON string, obtain the rows in each batch and then convert it to a DataFrame. 
 	# The structure of the JSON string has been provided in the streaming file. 
 	# Use this to parse your JSON to obtain rows, and then convert these rows into a DataFrame.
+	
+	pipeline=Pipeline.load("./pipeline")
+	test_set = model.transform(lines)
+	#import pickle
+	with open('model.pkl', 'rb') as f:
+    model = pickle.load(f)
+	predictions = model.predict(test_set)
+	accuracy = predictions.filter(predictions.label == predictions.prediction).count() / float(val_set.count())
+
+	evaluator = BinaryClassificationEvaluator(rawPredictionCol="rawPrediction")
+
+	roc_auc = evaluator.evaluate(predictions)
+	# print accuracy, roc_auc
+	print ("Accuracy Score: {0:.4f}".format(accuracy))
+	print ("ROC-AUC: {0:.4f}".format(roc_auc))
+	
 
 	# Start processing after all the transformations have been setup
 	ssc.start()             # Start the computation
