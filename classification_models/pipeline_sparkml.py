@@ -1,4 +1,4 @@
-from pyspark.ml import Pipeline
+from pyspark.ml import Pipeline, PipelineModel
 from pyspark.ml.feature import HashingTF, IDF, Tokenizer
 from pyspark.ml.feature import NGram, VectorAssembler
 from pyspark.ml.feature import CountVectorizer
