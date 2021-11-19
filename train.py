@@ -10,22 +10,12 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import *
 from pyspark.sql import functions as F
 
-from pyspark.ml import Pipeline
 from pyspark.ml.feature import StopWordsRemover, Word2Vec, RegexTokenizer
 from pyspark.ml.classification import LogisticRegression
-#from pyspark.mllib.classification import StreamingLogisticRegressionWithSGD
-
-
-from pyspark.ml.feature import HashingTF, IDF, Tokenizer
-from pyspark.ml.feature import StringIndexer
-from pyspark.ml.feature import CountVectorizer
-from pyspark.ml.feature import NGram, VectorAssembler
-from pyspark.ml.feature import ChiSqSelector
 
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
-#from sklearn import linear_model
 
-from classification_models.pipeline_sparkml import model_pipeline,get_model
+from classification_models.pipeline_sparkml import model_pipeline, get_model
 
 # Create a local StreamingContext with two execution threads
 sc = SparkContext("local[2]", "Sentiment")

@@ -1,3 +1,12 @@
+from pyspark.ml import Pipeline
+from pyspark.ml.feature import HashingTF, IDF, Tokenizer
+from pyspark.ml.feature import NGram, VectorAssembler
+from pyspark.ml.feature import CountVectorizer
+from pyspark.ml.feature import StringIndexer, ChiSqSelector
+
+from sklearn import linear_model
+
+
 def model_pipeline(inputCol=["Tweet","Sentiment"], n=3):
     
     tokenizer = [Tokenizer(inputCol="Tweet", outputCol="words")]
