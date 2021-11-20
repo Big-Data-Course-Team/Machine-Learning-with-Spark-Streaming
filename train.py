@@ -59,6 +59,8 @@ def process(rdd):
 	df = spark.createDataFrame((Row(**d) for d in dicts), schema)
 	df.select('tweet').show()
 
+	curr_pipeline = custom_model_pipeline(df)
+	
 	#curr_model = get_model()
 	#curr_model.partial_fit(df.select('tweet'), df.select('sentiment'), classes=[0, 4])
 	
