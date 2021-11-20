@@ -241,7 +241,7 @@ if __name__ == '__main__':
         _function = streamCIFARDataset
     elif input_file == "pokemon":
         _function = streamPokemonDataset
-    elif input_file in ["crime", "sentiment", "spam"]:
+    elif "sentiment" in input_file:
         _function = streamDataset
     # elif input_file == "my dataset":
     #     _function = streamMyDataset

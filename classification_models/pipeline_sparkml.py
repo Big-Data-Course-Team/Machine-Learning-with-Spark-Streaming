@@ -1,45 +1,72 @@
-from pyspark.ml import Pipeline
-from pyspark.ml.classification import LogisticRegression
-
+from pyspark.ml import Pipeline, PipelineModel
 from pyspark.ml.feature import HashingTF, IDF, Tokenizer
-from pyspark.ml.feature import StringIndexer
-from pyspark.ml.feature import CountVectorizer
 from pyspark.ml.feature import NGram, VectorAssembler
-from pyspark.ml.feature import ChiSqSelector
+from pyspark.ml.feature import StringIndexer, ChiSqSelector
 
-from pyspark.ml.evaluation import BinaryClassificationEvaluator
+from sklearn import linear_model
+from sklearn.feature_extraction.text import CountVectorizer
 
-def model_pipeline(inputCol=["Tweet","Sentiment"], n=3):
-    
-    tokenizer = [Tokenizer(inputCol="Tweet", outputCol="words")]
-    
-    ngrams = [
-        NGram(n=i, inputCol="words", outputCol="{0}_grams".format(i))
-        for i in range(1, n + 1)
-    ]
+# Custom function for partial fitting of C
+def partial_fit(self, batch_data):
+	if(hasattr(vectorizer , 'vocabulary_')):
+		new_vocab = self.vocabulary_
+	else:
+		new_vocab = {}
+	self.fit(batch_data)
+	new_vocab = list(set(new_vocab.keys()).union(set(self.vocabulary_ )))
+	self.vocabulary_ = {new_vocab[i] : i for i in range(len(new_vocab))}
 
-    cv = [
-        CountVectorizer(vocabSize=2**14,inputCol="{0}_grams".format(i),
-            outputCol="{0}_tf".format(i))
-        for i in range(1, n + 1)
-    ]
-    
-    idf = [IDF(inputCol="{0}_tf".format(i), outputCol="{0}_tfidf".format(i), minDocFreq=5) for i in range(1, n + 1)]
+# Apply custom function for class
+CountVectorizer.partial_fit = partial_fit
 
-    assembler = [VectorAssembler(
-        inputCols=["{0}_tfidf".format(i) for i in range(1, n + 1)],
-        outputCol="rawFeatures"
-    )]
-    
-    label_stringIdx = [StringIndexer(inputCol = "Sentiment", outputCol = "label")]
-    
-    selector = [ChiSqSelector(numTopFeatures=2**14,featuresCol='rawFeatures', outputCol="features")]
-    
-    lr = [LogisticRegression(maxIter=100)]
-    
-    return Pipeline(stages = tokenizer + ngrams + cv + idf + assembler + label_stringIdx + selector + lr)
-    
-    
+
+def custom_model_pipeline(df, inputCols = ["tweet", "sentiment"], n=3):
+	
+	# Feature transformers: Tokenizer, NGrams, CountVectorizer, IDF, VectorAssembler
+	
+	# Converts the input string to lowercase, splits by white spaces
+	tokenizer = Tokenizer(inputCol="tweet", outputCol="words")
+	df = tokenizer.transform(df)								# Needs no saving
+	df.show()
+	
+	# Create three cols for each transformer
+	for i in range(1, n+1):
+		
+		# Converts the input string to an array of n-grams (space-separated string of words)
+		ngrams = NGram(n=n, inputCol="words", outputCol="{0}_grams".format(i))
+		df = ngrams.transform(df)								# Needs no saving
+		df.show()
+		
+		# Extracts the vocab from the set of tweets in batch - uses saved transformer
+		# Requires saving
+		cv = CountVectorizer()
+		input_to_cv = df.select("{0}_grams".format(i))
+		cv.partial_fit(input_to_cv)
+		output_col = cv.transform(input_to_cv)
+		df = df.withColumn("{0}_cv".format(i), output_col)
+		df.show()
+		
+	# ------------------------------- Pipeline worked on till CV (to be tested) ----------------------------------------------
+		
+		# Compute the IDF score given a set of tweets
+		#idf = IDF(inputCol="{0}_cv".format(i), outputCol="{0}_tfidf".format(i), minDocFreq=5)
+		#df = cv.transform(idf)
+
+	# Merges multiple columns into a vector column
+	#assembler = VectorAssembler(inputCols=["{0}_tfidf".format(i) for i in range(1, n + 1)], outputCol="rawFeatures")
+	
+	#label_stringIdx = StringIndexer(inputCol = "Sentiment", outputCol = "label")
+	
+	#selector = ChiSqSelector(numTopFeatures=2**14,featuresCol='rawFeatures', outputCol="features")
+	
+	
+	
+def ml_algorithm():
+	lr= linear_model.SGDClassifier()
+	return lr
+
+	
+	
 #To run (?)
 '''
 pipeline = model_pipeline()

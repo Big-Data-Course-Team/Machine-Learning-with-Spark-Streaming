@@ -1,9 +1,23 @@
+import pickle
 import json
+import importlib
 
 from pyspark import SparkContext, SparkConf
 from pyspark.streaming import StreamingContext
 from pyspark.sql import SQLContext, Row, SparkSession
 from pyspark.sql.types import *
+
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+from pyspark.sql import functions as F
+
+from pyspark.ml import Pipeline
+from pyspark.ml.feature import StopWordsRemover, Word2Vec, RegexTokenizer
+from pyspark.ml.classification import LogisticRegression
+
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+
+from classification_models.pipeline_sparkml import custom_model_pipeline, ml_algorithm
 
 # Create a local StreamingContext with two execution threads
 sc = SparkContext("local[2]", "Sentiment")
@@ -30,6 +44,7 @@ schema = StructType([
 
 # Process each stream - needs to run ML models
 def process(rdd):
+	
 	global schema, spark
 	
 	# Collect all records
@@ -37,14 +52,23 @@ def process(rdd):
 	
 	# List of dicts
 	dicts = [i for j in records for i in list(json.loads(j).values())]
-
 	
 	if len(dicts) == 0:
 		return
-		
+	
+	# Create a DataFrame with each stream	
 	df = spark.createDataFrame((Row(**d) for d in dicts), schema)
-	df.show()
+	df.select('tweet').show()
 
+	curr_pipeline = custom_model_pipeline(df)
+	
+	#curr_model = get_model()
+	#curr_model.partial_fit(df.select('tweet'), df.select('sentiment'), classes=[0, 4])
+	
+	# Save the model to a file
+	#pipeline.write().overwrite().save("./pipeline")
+	#with open('model.pkl', 'wb') as f:
+	#	pickle.dump(model, f)
 
 
 # Main entry point for all streaming functionality
@@ -60,12 +84,8 @@ if __name__ == '__main__':
 	# Process each RDD
 	lines.foreachRDD(process)
 
-	# The data is streamed as a JSON string (you can see this by observing the code in stream.py). 
-	# You will first need to parse the JSON string, obtain the rows in each batch and then convert it to a DataFrame. 
-	# The structure of the JSON string has been provided in the streaming file. 
-	# Use this to parse your JSON to obtain rows, and then convert these rows into a DataFrame.
-
 	# Start processing after all the transformations have been setup
 	ssc.start()             # Start the computation
 	ssc.awaitTermination()  # Wait for the computation to terminate
+
 
