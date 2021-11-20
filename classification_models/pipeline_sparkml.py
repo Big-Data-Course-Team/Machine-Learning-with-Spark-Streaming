@@ -1,10 +1,23 @@
 from pyspark.ml import Pipeline, PipelineModel
 from pyspark.ml.feature import HashingTF, IDF, Tokenizer
 from pyspark.ml.feature import NGram, VectorAssembler
-from pyspark.ml.feature import CountVectorizer, CountVectorizerModel
 from pyspark.ml.feature import StringIndexer, ChiSqSelector
 
 from sklearn import linear_model
+from sklearn.feature_extraction.text import CountVectorizer
+
+# Custom function for partial fitting of C
+def partial_fit(self, batch_data):
+    if(hasattr(vectorizer , 'vocabulary_')):
+        new_vocab = self.vocabulary_
+    else:
+        new_vocab = {}
+    self.fit(batch_data)
+    new_vocab = list(set(new_vocab.keys()).union(set(self.vocabulary_ )))
+    self.vocabulary_ = {new_vocab[i] : i for i in range(len(new_vocab))}
+
+# Apply custom function for class
+CountVectorizer.partial_fit = partial_fit
 
 
 def custom_model_pipeline(df, inputCols = ["tweet", "sentiment"], n=3):
@@ -13,7 +26,7 @@ def custom_model_pipeline(df, inputCols = ["tweet", "sentiment"], n=3):
     
     # Converts the input string to lowercase, splits by white spaces
     tokenizer = Tokenizer(inputCol="tweet", outputCol="words")
-    df = tokenizer.transform(df)					# Needs no saving
+    df = tokenizer.transform(df)								# Needs no saving
     df.head()
     
     # Create three cols for each transformer
@@ -21,28 +34,28 @@ def custom_model_pipeline(df, inputCols = ["tweet", "sentiment"], n=3):
 		
 		# Converts the input string to an array of n-grams (space-separated string of words)
 		ngrams = NGram(n=n, inputCol="words", outputCol="{0}_grams".format(i))
-		df = ngrams.transform(df)					# Needs no saving
+		df = ngrams.transform(df)								# Needs no saving
 
 		# Extracts the vocab from the set of tweets in batch - uses saved transformer
 		# Requires saving
-		cv = CountVectorizer(vocabSize=2**14, inputCol="{0}_grams".format(i), outputCol="{0}_tf".format(i))
-		cv_model = cv.fit(df).setInputCol("{0}_grams".format(i))
-		df = cv_model.transform(df)
+		cv = CountVectorizer()
+		input_to_cv = df.select("{0}_grams".format(i))
+		cv.partial_fit(input_to_cv)
+		output_col = cv.transform(input_to_cv)
+		df = df.withColumn("{0}_cv".format(i), output_col)
 		
-		# Save CV transformer and model for iterative learning
-		cv.save("/count-vectorizer_{0}".format(i))
-		cv_model.save("/count-vectorizer-model_{0}".format(i))
+	# ------------------------------- Pipeline worked on till CV (to be tested) ----------------------------------------------
 		
 		# Compute the IDF score given a set of tweets
-	    idf = IDF(inputCol="{0}_tf".format(i), outputCol="{0}_tfidf".format(i), minDocFreq=5)
-		df = cv.transform(idf)
+	    #idf = IDF(inputCol="{0}_cv".format(i), outputCol="{0}_tfidf".format(i), minDocFreq=5)
+		#df = cv.transform(idf)
 
 	# Merges multiple columns into a vector column
-	assembler = VectorAssembler(inputCols=["{0}_tfidf".format(i) for i in range(1, n + 1)], outputCol="rawFeatures")
+	#assembler = VectorAssembler(inputCols=["{0}_tfidf".format(i) for i in range(1, n + 1)], outputCol="rawFeatures")
     
-    label_stringIdx = StringIndexer(inputCol = "Sentiment", outputCol = "label")
+    #label_stringIdx = StringIndexer(inputCol = "Sentiment", outputCol = "label")
     
-    selector = ChiSqSelector(numTopFeatures=2**14,featuresCol='rawFeatures', outputCol="features")
+    #selector = ChiSqSelector(numTopFeatures=2**14,featuresCol='rawFeatures', outputCol="features")
     
     
     
