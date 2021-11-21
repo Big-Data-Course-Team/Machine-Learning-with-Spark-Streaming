@@ -16,8 +16,9 @@ from pyspark.ml.feature import StopWordsRemover, Word2Vec, RegexTokenizer
 from pyspark.ml.classification import LogisticRegression
 
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
+from sklearn.feature_extraction.text import CountVectorizer
 
-from classification_models.pipeline_sparkml import custom_model_pipeline, ml_algorithm
+from classification_models.pipeline_sparkml import custom_model_pipeline, get_model
 
 # Create a local StreamingContext with two execution threads
 sc = SparkContext("local[2]", "Sentiment")

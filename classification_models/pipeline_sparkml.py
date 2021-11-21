@@ -8,13 +8,14 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 # Custom function for partial fitting of C
 def partial_fit(self, batch_data):
-	if(hasattr(vectorizer , 'vocabulary_')):
+	if(hasattr(self, 'vocabulary_')):
 		new_vocab = self.vocabulary_
 	else:
 		new_vocab = {}
 	self.fit(batch_data)
 	new_vocab = list(set(new_vocab.keys()).union(set(self.vocabulary_ )))
 	self.vocabulary_ = {new_vocab[i] : i for i in range(len(new_vocab))}
+	
 
 # Apply custom function for class
 CountVectorizer.partial_fit = partial_fit
@@ -33,16 +34,18 @@ def custom_model_pipeline(df, inputCols = ["tweet", "sentiment"], n=3):
 	for i in range(1, n+1):
 		
 		# Converts the input string to an array of n-grams (space-separated string of words)
-		ngrams = NGram(n=n, inputCol="words", outputCol="{0}_grams".format(i))
+		ngrams = NGram(n=i, inputCol="words", outputCol="{0}_grams".format(i))
 		df = ngrams.transform(df)								# Needs no saving
 		df.show()
 		
 		# Extracts the vocab from the set of tweets in batch - uses saved transformer
 		# Requires saving
-		cv = CountVectorizer()
-		input_to_cv = df.select("{0}_grams".format(i))
-		cv.partial_fit(input_to_cv)
-		output_col = cv.transform(input_to_cv)
+		vectorizer = CountVectorizer()
+		input_str = "{0}_grams".format(i)
+		input_arr = df.select(input_str).collect()
+		cv_in_arr = [str(row[input_str]) for row in input_arr]
+		vectorizer.partial_fit(cv_in_arr)
+		output_col = vectorizer.transform(cv_in_arr)
 		df = df.withColumn("{0}_cv".format(i), output_col)
 		df.show()
 		
@@ -61,8 +64,8 @@ def custom_model_pipeline(df, inputCols = ["tweet", "sentiment"], n=3):
 	
 	
 	
-def ml_algorithm():
-	lr= linear_model.SGDClassifier()
+def get_model():
+	lr = linear_model.SGDClassifier()
 	return lr
 
 	
