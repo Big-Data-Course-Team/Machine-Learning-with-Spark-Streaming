@@ -6,7 +6,10 @@ from pyspark.ml.feature import StringIndexer, ChiSqSelector
 from sklearn import linear_model
 from sklearn.feature_extraction.text import CountVectorizer
 
-# Custom function for partial fitting of C
+from pyspark.sql.types import *
+from pyspark.ml.linalg import *
+
+# Custom function for partial fitting of CV
 def partial_fit(self, batch_data):
 	if(hasattr(self, 'vocabulary_')):
 		new_vocab = self.vocabulary_
@@ -21,7 +24,7 @@ def partial_fit(self, batch_data):
 CountVectorizer.partial_fit = partial_fit
 
 
-def custom_model_pipeline(df, inputCols = ["tweet", "sentiment"], n=3):
+def custom_model_pipeline(df, spark, inputCols = ["tweet", "sentiment"], n=3):
 	
 	# Feature transformers: Tokenizer, NGrams, CountVectorizer, IDF, VectorAssembler
 	
@@ -42,12 +45,20 @@ def custom_model_pipeline(df, inputCols = ["tweet", "sentiment"], n=3):
 		# Requires saving
 		vectorizer = CountVectorizer()
 		input_str = "{0}_grams".format(i)
+		output_str = "{0}_cv".format(i)
+		
 		input_arr = df.select(input_str).collect()
 		cv_in_arr = [str(row[input_str]) for row in input_arr]
 		vectorizer.partial_fit(cv_in_arr)
 		output_col = vectorizer.transform(cv_in_arr)
-		df = df.withColumn("{0}_cv".format(i), output_col)
-		df.show()
+#		print(*list(zip(vectorizer.get_feature_names(), output_col.sum(0).getA1())))
+		output_col = DenseVector(output_col.toarray())
+		print(output_col)
+		#schema = StructType([StructField(output_str, DenseVector(), False)])
+		output_df = spark.createDataFrame(data=output_col)
+		output_df.show()
+		#df = df.withColumn(output_str, output_df)
+		#df.show()
 		
 	# ------------------------------- Pipeline worked on till CV (to be tested) ----------------------------------------------
 		
