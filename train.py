@@ -19,6 +19,7 @@ from pyspark.sql.types import *
 
 from preprocessing.preprocess import preprocessing
 from classification_models.pipeline_sparkml import custom_model_pipeline, get_model
+from clustering_models.kmeans_clustering import clustering
 
 '''
  ---------------------------- Constant definitions ----------------------------------
@@ -78,7 +79,12 @@ def process(rdd):
 	df.show()
 	# ==================================================
 	
-	custom_model_pipeline(df, spark)
+	df=custom_model_pipeline(df, spark)
+	
+	print("After Pipeline")
+	df.show()
+	
+	clustering(df, spark)
 	
 	#curr_model = get_model()
 	#curr_model.partial_fit(df.select('tweet'), df.select('sentiment'), classes=[0, 4])

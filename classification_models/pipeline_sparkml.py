@@ -50,6 +50,7 @@ def custom_model_pipeline(df, spark, inputCols = ["tweet", "sentiment"], n=3):
 	output_arr = vectorizer.transform(input_arr)
 	output_arr = output_arr.toarray()
 	
+	#return output_arr
 	#df.printSchema()
 	
 	output_col = list(map(lambda x: [x[0], x[1].tolist()], zip(input_str_arr, output_arr)))
@@ -69,7 +70,8 @@ def custom_model_pipeline(df, spark, inputCols = ["tweet", "sentiment"], n=3):
 	df = df.drop('tokens_noStop_copy')
 	
 
-	df.show()
+	#df.show()
+	return df
 
 	'''
 	# Create three cols for each transformer
