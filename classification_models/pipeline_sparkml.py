@@ -10,12 +10,14 @@ from pyspark.ml.feature import NGram, VectorAssembler
 from pyspark.ml.feature import StringIndexer, ChiSqSelector
 
 from pyspark.sql.types import *
-from pyspark.ml.linalg import Vectors
+from pyspark.ml.linalg import Vectors, DenseVector
 
 from sklearn import linear_model
 from sklearn.feature_extraction.text import CountVectorizer
 from pyspark.ml.classification import LogisticRegression
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
+
+
 
 # Custom function for partial fitting of CV
 def partial_fit(self, batch_data):
@@ -40,18 +42,34 @@ def custom_model_pipeline(df, spark, inputCols = ["tweet", "sentiment"], n=3):
 	input_str = 'tokens_noStop'
 	
 	input_col = df.select(input_str).collect()
-	input_arr = [str(row[input_str]) for row in input_col]
+	input_str_arr = [row[input_str] for row in input_col]
+	input_arr = [str(a) for a in input_str_arr]
 	
 	vectorizer = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
 	vectorizer.partial_fit(input_arr)
 	output_arr = vectorizer.transform(input_arr)
 	output_arr = output_arr.toarray()
 	
-	output_col = list(map(lambda x: Vectors.dense(x), output_arr))
-	schema = StructType([StructField('count_vectors', ArrayType(IntegerType()))])
+	#df.printSchema()
+	
+	output_col = list(map(lambda x: [x[0], x[1].tolist()], zip(input_str_arr, output_arr)))
+	
+	
+	schema = StructType([
+		StructField('tokens_noStop_copy', ArrayType(StringType())),
+		StructField('count_vectors', ArrayType(IntegerType()))
+	])
+	
 	dff = spark.createDataFrame(data=output_col, schema=schema)
-#	df = df.withColumn('count_vectors', output_col)
-	dff.show()
+	#dff.printSchema()
+	#dff.show()
+	
+
+	df = df.join(dff, dff.tokens_noStop_copy == df.tokens_noStop, 'inner')
+	df = df.drop('tokens_noStop_copy')
+	
+
+	df.show()
 
 	'''
 	# Create three cols for each transformer
