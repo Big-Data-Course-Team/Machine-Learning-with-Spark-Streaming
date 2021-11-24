@@ -1,7 +1,21 @@
+'''
+MLSS: Machine Learning with Spark Streaming
+Dataset: Tweet Sentiment Analysis
+Submission by: Team BD_078_460_474_565
+Course: Big Data, Fall 2021
+'''
+
 from pyspark.ml import Pipeline, PipelineModel
 from pyspark.ml.feature import HashingTF, IDF, Tokenizer
 from pyspark.ml.feature import NGram, VectorAssembler
 from pyspark.ml.feature import StringIndexer, ChiSqSelector
+
+from pyspark.ml import Pipeline
+from pyspark.ml.feature import StopWordsRemover, Word2Vec, RegexTokenizer
+from pyspark.ml.classification import LogisticRegression
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+from sklearn.feature_extraction.text import CountVectorizer
+
 
 from sklearn import linear_model
 from sklearn.feature_extraction.text import CountVectorizer
@@ -26,12 +40,7 @@ CountVectorizer.partial_fit = partial_fit
 
 def custom_model_pipeline(df, spark, inputCols = ["tweet", "sentiment"], n=3):
 	
-	# Feature transformers: Tokenizer, NGrams, CountVectorizer, IDF, VectorAssembler
-	
-	# Converts the input string to lowercase, splits by white spaces
-	tokenizer = Tokenizer(inputCol="tweet", outputCol="words")
-	df = tokenizer.transform(df)								# Needs no saving
-	df.show()
+	# Feature transformers: NGrams, CountVectorizer, IDF, VectorAssembler
 	
 	# Create three cols for each transformer
 	for i in range(1, n+1):
