@@ -6,44 +6,57 @@ Course: Big Data, Fall 2021
 '''
 
 from pyspark.ml import Pipeline, PipelineModel
-from pyspark.ml.feature import HashingTF, IDF, Tokenizer
 from pyspark.ml.feature import NGram, VectorAssembler
 from pyspark.ml.feature import StringIndexer, ChiSqSelector
 
-from pyspark.ml import Pipeline
-from pyspark.ml.feature import StopWordsRemover, Word2Vec, RegexTokenizer
-from pyspark.ml.classification import LogisticRegression
-from pyspark.ml.evaluation import BinaryClassificationEvaluator
-from sklearn.feature_extraction.text import CountVectorizer
-
+from pyspark.sql.types import *
+from pyspark.ml.linalg import Vectors
 
 from sklearn import linear_model
 from sklearn.feature_extraction.text import CountVectorizer
-
-from pyspark.sql.types import *
-from pyspark.ml.linalg import *
+from pyspark.ml.classification import LogisticRegression
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
 
 # Custom function for partial fitting of CV
 def partial_fit(self, batch_data):
+
 	if(hasattr(self, 'vocabulary_')):
-		new_vocab = self.vocabulary_
+		old_vocab = self.vocabulary_
 	else:
-		new_vocab = {}
+		old_vocab = {}
+
 	self.fit(batch_data)
-	new_vocab = list(set(new_vocab.keys()).union(set(self.vocabulary_ )))
+
+	new_vocab = list(set(old_vocab.keys()).union(set(self.vocabulary_ )))
 	self.vocabulary_ = {new_vocab[i] : i for i in range(len(new_vocab))}
 	
+	return self
 
-# Apply custom function for class
 CountVectorizer.partial_fit = partial_fit
 
 
 def custom_model_pipeline(df, spark, inputCols = ["tweet", "sentiment"], n=3):
 	
-	# Feature transformers: NGrams, CountVectorizer, IDF, VectorAssembler
+	input_str = 'tokens_noStop'
 	
+	input_col = df.select(input_str).collect()
+	input_arr = [str(row[input_str]) for row in input_col]
+	
+	vectorizer = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
+	vectorizer.partial_fit(input_arr)
+	output_arr = vectorizer.transform(input_arr)
+	output_arr = output_arr.toarray()
+	
+	output_col = list(map(lambda x: Vectors.dense(x), output_arr))
+	schema = StructType([StructField('count_vectors', ArrayType(IntegerType()))])
+	dff = spark.createDataFrame(data=output_col, schema=schema)
+#	df = df.withColumn('count_vectors', output_col)
+	dff.show()
+
+	'''
 	# Create three cols for each transformer
 	for i in range(1, n+1):
+		
 		
 		# Converts the input string to an array of n-grams (space-separated string of words)
 		ngrams = NGram(n=i, inputCol="words", outputCol="{0}_grams".format(i))
@@ -69,7 +82,8 @@ def custom_model_pipeline(df, spark, inputCols = ["tweet", "sentiment"], n=3):
 		#df = df.withColumn(output_str, output_df)
 		#df.show()
 		
-	# ------------------------------- Pipeline worked on till CV (to be tested) ----------------------------------------------
+	'''
+	# ------------------------------ Pipeline worked on till CV (to be tested) ----------------------------------------------
 		
 		# Compute the IDF score given a set of tweets
 		#idf = IDF(inputCol="{0}_cv".format(i), outputCol="{0}_tfidf".format(i), minDocFreq=5)

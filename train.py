@@ -38,12 +38,14 @@ schema = StructType([
 '''
 # Create a local StreamingContext with two execution threads
 sc = SparkContext("local[2]", "Sentiment")
+sc.setLogLevel("WARN")
 sql_context = SQLContext(sc)
 	
 spark = SparkSession \
 .builder \
 .config(conf=SparkConf()) \
 .getOrCreate()
+spark.sparkContext.setLogLevel("ERROR")
 
 # Batch interval of 5 seconds - TODO: Change according to necessity
 ssc = StreamingContext(sc, 5)
@@ -71,12 +73,12 @@ def process(rdd):
 	# Perform preprocessing
 	df = preprocessing(df)
 	
-	# ==================Test==============
+	# ==================Test preprocessing==============
 	print('After preprocessing:\n')
 	df.show()
-	# ====================================
+	# ==================================================
 	
-	#curr_pipeline = custom_model_pipeline(df, spark)
+	custom_model_pipeline(df, spark)
 	
 	#curr_model = get_model()
 	#curr_model.partial_fit(df.select('tweet'), df.select('sentiment'), classes=[0, 4])
