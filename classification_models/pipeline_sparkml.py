@@ -24,14 +24,19 @@ def partial_fit(self, batch_data):
 
 	if(hasattr(self, 'vocabulary_')):
 		old_vocab = self.vocabulary_
+		old_vocab_len = len(old_vocab)
+
+		self.fit(batch_data)
+
+		for word in self.vocabulary_.keys():
+			self.vocabulary_[word] += old_vocab_len
+
+		old_vocab.update(self.vocabulary_)
+		self.vocabulary_ = old_vocab
+
 	else:
-		old_vocab = {}
-
-	self.fit(batch_data)
-
-	new_vocab = list(set(old_vocab.keys()).union(set(self.vocabulary_ )))
-	self.vocabulary_ = {new_vocab[i] : i for i in range(len(new_vocab))}
-	
+		self.fit(batch_data)
+		
 	return self
 
 CountVectorizer.partial_fit = partial_fit
@@ -50,9 +55,6 @@ def custom_model_pipeline(df, spark, inputCols = ["tweet", "sentiment"], n=3):
 	output_arr = vectorizer.transform(input_arr)
 	output_arr = output_arr.toarray()
 	
-	#return output_arr
-	#df.printSchema()
-	
 	output_col = list(map(lambda x: [x[0], x[1].tolist()], zip(input_str_arr, output_arr)))
 	
 	
@@ -62,47 +64,12 @@ def custom_model_pipeline(df, spark, inputCols = ["tweet", "sentiment"], n=3):
 	])
 	
 	dff = spark.createDataFrame(data=output_col, schema=schema)
-	#dff.printSchema()
-	#dff.show()
-	
 
 	df = df.join(dff, dff.tokens_noStop_copy == df.tokens_noStop, 'inner')
 	df = df.drop('tokens_noStop_copy')
 	
-
-	#df.show()
 	return df
 
-	'''
-	# Create three cols for each transformer
-	for i in range(1, n+1):
-		
-		
-		# Converts the input string to an array of n-grams (space-separated string of words)
-		ngrams = NGram(n=i, inputCol="words", outputCol="{0}_grams".format(i))
-		df = ngrams.transform(df)								# Needs no saving
-		df.show()
-		
-		# Extracts the vocab from the set of tweets in batch - uses saved transformer
-		# Requires saving
-		vectorizer = CountVectorizer()
-		input_str = "{0}_grams".format(i)
-		output_str = "{0}_cv".format(i)
-		
-		input_arr = df.select(input_str).collect()
-		cv_in_arr = [str(row[input_str]) for row in input_arr]
-		vectorizer.partial_fit(cv_in_arr)
-		output_col = vectorizer.transform(cv_in_arr)
-#		print(*list(zip(vectorizer.get_feature_names(), output_col.sum(0).getA1())))
-		output_col = DenseVector(output_col.toarray())
-		print(output_col)
-		#schema = StructType([StructField(output_str, DenseVector(), False)])
-		output_df = spark.createDataFrame(data=output_col)
-		output_df.show()
-		#df = df.withColumn(output_str, output_df)
-		#df.show()
-		
-	'''
 	# ------------------------------ Pipeline worked on till CV (to be tested) ----------------------------------------------
 		
 		# Compute the IDF score given a set of tweets
