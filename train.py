@@ -84,15 +84,15 @@ def process(rdd):
 	print("After Pipeline")
 	df.show()
 	
-	clustering(df, spark)
-	
+	model=clustering(df, spark)
+
 	#curr_model = get_model()
 	#curr_model.partial_fit(df.select('tweet'), df.select('sentiment'), classes=[0, 4])
 	
-	# Save the model to a file
+	#Save the model to a file
 	#pipeline.write().overwrite().save("./pipeline")
-	#with open('model.pkl', 'wb') as f:
-	#	pickle.dump(model, f)
+	with open('model.pkl', 'wb') as f:
+		pickle.dump(model, f)
 
 
 # Main entry point for all streaming functionality

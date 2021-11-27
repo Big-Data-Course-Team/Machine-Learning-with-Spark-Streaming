@@ -15,7 +15,7 @@ from tqdm.auto import tqdm
 parser = argparse.ArgumentParser(
     description='Streams a file to a Spark Streaming Context')
 parser.add_argument('--file', '-f', help='File to stream', required=False,
-                    type=str, default="sentiment")    # path to file for streaming
+                    type=str, default="cifar")    # path to file for streaming
 parser.add_argument('--batch-size', '-b', help='Batch size',
                     required=False, type=int, default=100)  # default batch_size is 100
 parser.add_argument('--endless', '-e', help='Enable endless stream',
@@ -76,10 +76,10 @@ def streamCIFARDataset(tcp_connection, dataset_type='cifar'):
     print("Starting to stream CIFAR data")
     CIFAR_BATCHES = [
         'data_batch_1',
-        # 'data_batch_2',   # uncomment to stream the second training dataset
-        # 'data_batch_3',   # uncomment to stream the third training dataset
-        # 'data_batch_4',   # uncomment to stream the fourth training dataset
-        # 'data_batch_5',    # uncomment to stream the fifth training dataset
+        'data_batch_2',   # uncomment to stream the second training dataset
+        'data_batch_3',   # uncomment to stream the third training dataset
+        'data_batch_4',   # uncomment to stream the fourth training dataset
+        'data_batch_5',    # uncomment to stream the fifth training dataset
         # 'test_batch'      # uncomment to stream the test dataset
     ]
     for batch in CIFAR_BATCHES:
@@ -140,7 +140,7 @@ def streamDataset(tcp_connection, dataset_type):    # function to stream a datas
     print(f"Starting to stream {dataset_type} dataset")
     DATASETS = [    # list of files in your dataset to stream
         "train",
-        # "test"    # uncomment to stream the test dataset
+        #"test"    # uncomment to stream the test dataset
     ]
     for dataset in DATASETS:
         streamCSVFile(tcp_connection, f'{dataset_type}/{dataset}.csv')
@@ -253,6 +253,8 @@ if __name__ == '__main__':
             _function(tcp_connection, input_file)
     else:
         _function(tcp_connection, input_file)
+
+    tcp_connection.close()
 
 # Setup your own dataset streamer by following the examples above.
 # If you wish to stream a single newline delimited file, use streamFile()

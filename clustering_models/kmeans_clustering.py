@@ -3,7 +3,7 @@ from pyspark.mllib.regression import LabeledPoint
 from pyspark.mllib.clustering import StreamingKMeans
 from sklearn.cluster import MiniBatchKMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
-
+from sklearn.metrics import accuracy_score
 import numpy as np
 
 
@@ -14,13 +14,28 @@ def clustering(df, spark):
 	trainingData = np.array(trainingData)
 	trainingData = np.reshape(trainingData,(trainingData.shape[0], -1))
 	trainingData= vector(trainingData)
-	num_clusters = 10
+	num_clusters = 2
 	kmeans_model = MiniBatchKMeans(n_clusters=num_clusters, init='k-means++', n_init=1, 
 		                     init_size=1000, batch_size=1000, verbose=False, max_iter=1000)
 	
 	kmeans = kmeans_model.partial_fit(trainingData)
+	predictions = kmeans.predict(trainingData)
+	actual=df.select("Sentiment").collect()
 	
-
+	act=[]
+	for i in actual:
+		if i==4:
+			i=1
+		act.append(i)
+	correct=0
+	for i in range(len(act)):
+		if act[i]==predictions[i]:
+			correct+=1
+	accuracy=correct/len(act)
+	#print(predictions)
+	# print accuracy
+	print ("Accuracy: {0:.4f}".format(accuracy))
+	return kmeans
 	# printing the predicted cluster assignments on new data points as they arrive.
 	'''
 	result = model.predictOnValues(testdata.map(lambda lp: (lp.label, lp.features)))
