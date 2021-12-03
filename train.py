@@ -20,6 +20,7 @@ from pyspark.sql.types import *
 from preprocessing.preprocess import preprocessing
 from classification_models.pipeline_sparkml import custom_model_pipeline, get_model
 from clustering_models.kmeans_clustering import clustering
+from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 
 '''
  ---------------------------- Constant definitions ----------------------------------
@@ -51,13 +52,18 @@ spark.sparkContext.setLogLevel("ERROR")
 # Batch interval of 5 seconds - TODO: Change according to necessity
 ssc = StreamingContext(sc, 5)
 
+# Define countvectorizer - TODO: figure out how to get HV to work
+vectorizer = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
+#vectorizer = HashingVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
+	
+
 '''
  ---------------------------- Processing -------------------------------------------
 '''
 # Process each stream - needs to run ML models
 def process(rdd):
 	
-	global schema, spark
+	global schema, spark, vectorizer
 	
 	# Collect all records
 	records = rdd.collect()
@@ -79,20 +85,25 @@ def process(rdd):
 	df.show()
 	# ==================================================
 	
-	df=custom_model_pipeline(df, spark)
+	df=custom_model_pipeline(df, spark, vectorizer)
 	
 	print("After Pipeline")
 	df.show()
 	
-	model=clustering(df, spark)
-
+	# ===============Logistic Regression================
+	
+	
+	
+	
+	clustering(df, spark)
+	
 	#curr_model = get_model()
 	#curr_model.partial_fit(df.select('tweet'), df.select('sentiment'), classes=[0, 4])
 	
-	#Save the model to a file
+	# Save the model to a file
 	#pipeline.write().overwrite().save("./pipeline")
-	with open('model.pkl', 'wb') as f:
-		pickle.dump(model, f)
+	#with open('model.pkl', 'wb') as f:
+	#	pickle.dump(model, f)
 
 
 # Main entry point for all streaming functionality
@@ -104,6 +115,7 @@ if __name__ == '__main__':
 
 	# TODO: check if split is necessary
 	json_str = lines.flatMap(lambda x: x.split('\n'))
+	
 	
 	# Process each RDD
 	lines.foreachRDD(process)
