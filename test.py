@@ -1,56 +1,74 @@
+'''
+MLSS: Machine Learning with Spark Streaming
+Dataset: Tweet Sentiment Analysis
+Submission by: Team BD_078_460_474_565
+Course: Big Data, Fall 2021
+'''
+
+'''
+ ---------------------------- Import definitions ------------------------------------
+'''
+import pickle
 import json
 import importlib
 
 from pyspark import SparkContext, SparkConf
 from pyspark.streaming import StreamingContext
 from pyspark.sql import SQLContext, Row, SparkSession
-
-from pyspark.sql.functions import *
 from pyspark.sql.types import *
-from pyspark.sql import functions as F
 
-from pyspark.ml import Pipeline
-from pyspark.ml.feature import StopWordsRemover, Word2Vec, RegexTokenizer
-from pyspark.ml.classification import LogisticRegression
-#from pyspark.mllib.classification import StreamingLogisticRegressionWithSGD
-
-
-from pyspark.ml.feature import HashingTF, IDF, Tokenizer
-from pyspark.ml.feature import StringIndexer
-from pyspark.ml.feature import CountVectorizer
-from pyspark.ml.feature import NGram, VectorAssembler
-from pyspark.ml.feature import ChiSqSelector
+from preprocessing.preprocess import preprocessing
+from classification_models.pipeline_sparkml import custom_model_pipeline, get_model
+from clustering_models.kmeans_clustering import clustering
+from sklearn.feature_extraction.text import CountVectorizer
 
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
-from spark_sklearn import linear_model
+#from spark_sklearn import linear_model
+from sklearn.metrics import accuracy_score
 
-from classification_models.pipeline_sparkml import model_pipeline
+from pyspark.mllib.linalg import Vectors
+from pyspark.mllib.regression import LabeledPoint
+from sklearn.cluster import MiniBatchKMeans
+from sklearn.decomposition import PCA
 
-# Create a local StreamingContext with two execution threads
-sc = SparkContext("local[2]", "Sentiment")
-	
-spark = SparkSession \
-.builder \
-.config(conf=SparkConf()) \
-.getOrCreate()
+import numpy as np
 
-# Batch interval of 5 seconds - TODO: Change according to necessity
-ssc = StreamingContext(sc, 5)
-
-sql_context = SQLContext(sc)
-	
+'''
+ ---------------------------- Constant definitions ----------------------------------
+'''
 # Set constant for the TCP port to send from/listen to
 TCP_IP = "localhost"
 TCP_PORT = 6100
-	
+
 # Create schema
 schema = StructType([
 	StructField("sentiment", StringType(), False),
 	StructField("tweet", StringType(), False),
 ])
 
+'''
+ ---------------------------- Spark definitions -------------------------------------
+'''
+# Create a local StreamingContext with two execution threads
+sc = SparkContext("local[2]", "Sentiment")
+sc.setLogLevel("WARN")
+sql_context = SQLContext(sc)
+	
+spark = SparkSession \
+.builder \
+.config(conf=SparkConf()) \
+.getOrCreate()
+spark.sparkContext.setLogLevel("ERROR")
+
+# Batch interval of 5 seconds - TODO: Change according to necessity
+ssc = StreamingContext(sc, 5)
+
+'''
+ ---------------------------- Processing -------------------------------------------
+'''
 # Process each stream - needs to run ML models
 def process(rdd):
+	
 	global schema, spark
 	
 	# Collect all records
@@ -58,15 +76,69 @@ def process(rdd):
 	
 	# List of dicts
 	dicts = [i for j in records for i in list(json.loads(j).values())]
-
 	
 	if len(dicts) == 0:
 		return
-		
+	
+	# Create a DataFrame with each stream	
 	df = spark.createDataFrame((Row(**d) for d in dicts), schema)
+	
+	# Perform preprocessing
+	df = preprocessing(df)
+	
+	# ==================Test preprocessing==============
+	print('After preprocessing:\n')
 	df.show()
-
-
+	# ==================================================
+	
+	df=custom_model_pipeline(df, spark)
+	
+	print("After Pipeline")
+	df.show()
+	
+	
+	
+	input_str="tokens_noStop"	
+	with open('model.pkl', 'rb') as f:
+		model = pickle.load(f)
+	
+	#vectorizer = pickle.load(open("vectorizer.pickle", "rb"))
+	'''
+	
+	input_col = df.select(input_str).collect()
+	#input_str_arr = [row[input_str] for row in input_col]
+	input_arr = [str(a) for a in input_col]
+	'''
+	pca = PCA(2)
+	testingData=list(map(lambda line: Vectors.dense(line), df.select("count_vectors").collect()))
+	testingData = np.array(testingData)
+	vector = np.vectorize(float)#not required
+	#testingData = vectorizer.transform(input_arr)
+	#testingData = testingData.toarray()
+	testingData = np.reshape(testingData,(testingData.shape[0], -1))
+	testingData= vector(testingData)
+	
+	testingData = pca.fit_transform(testingData)
+	
+	predictions = model.predict(testingData)
+	#actual=df.select("Sentiment").collect()
+	actual= df.select('Sentiment').rdd.map(lambda row : row[0]).collect()
+	
+	
+	actual=[int(i) for i in actual]
+	predictions=[int(i) for i in predictions]
+	
+	act=list()
+	for i in actual:
+		if i==4:
+			i=1
+		act.append(i)
+	correct=0
+	for i in range(len(act)):
+		if act[i]==predictions[i]:
+			correct+=1
+	accuracy=correct/len(act)
+	print ("Accuracy: ", accuracy)
 
 # Main entry point for all streaming functionality
 if __name__ == '__main__':
@@ -81,28 +153,9 @@ if __name__ == '__main__':
 	# Process each RDD
 	lines.foreachRDD(process)
 
-	# The data is streamed as a JSON string (you can see this by observing the code in stream.py). 
-	# You will first need to parse the JSON string, obtain the rows in each batch and then convert it to a DataFrame. 
-	# The structure of the JSON string has been provided in the streaming file. 
-	# Use this to parse your JSON to obtain rows, and then convert these rows into a DataFrame.
-	
-	pipeline=Pipeline.load("./pipeline")
-	test_set = model.transform(lines)
-	#import pickle
-	with open('model.pkl', 'rb') as f:
-    model = pickle.load(f)
-	predictions = model.predict(test_set)
-	accuracy = predictions.filter(predictions.label == predictions.prediction).count() / float(val_set.count())
-
-	evaluator = BinaryClassificationEvaluator(rawPredictionCol="rawPrediction")
-
-	roc_auc = evaluator.evaluate(predictions)
-	# print accuracy, roc_auc
-	print ("Accuracy Score: {0:.4f}".format(accuracy))
-	print ("ROC-AUC: {0:.4f}".format(roc_auc))
-	
-
 	# Start processing after all the transformations have been setup
 	ssc.start()             # Start the computation
 	ssc.awaitTermination()  # Wait for the computation to terminate
+
+
 
