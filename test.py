@@ -20,6 +20,7 @@ from pyspark.sql.types import *
 from preprocessing.preprocess import preprocessing
 from classification_models.pipeline_sparkml import custom_model_pipeline, get_model
 from clustering_models.kmeans_clustering import clustering
+from sklearn.feature_extraction.text import CountVectorizer
 
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 #from spark_sklearn import linear_model
@@ -28,6 +29,7 @@ from sklearn.metrics import accuracy_score
 from pyspark.mllib.linalg import Vectors
 from pyspark.mllib.regression import LabeledPoint
 from sklearn.cluster import MiniBatchKMeans
+from sklearn.decomposition import PCA
 
 import numpy as np
 
@@ -94,24 +96,49 @@ def process(rdd):
 	print("After Pipeline")
 	df.show()
 	
-	model=clustering(df, spark)
 	
+	
+	input_str="tokens_noStop"	
 	with open('model.pkl', 'rb') as f:
 		model = pickle.load(f)
-    
+	
+	#vectorizer = pickle.load(open("vectorizer.pickle", "rb"))
+	'''
+	
+	input_col = df.select(input_str).collect()
+	#input_str_arr = [row[input_str] for row in input_col]
+	input_arr = [str(a) for a in input_col]
+	'''
+	pca = PCA(2)
 	testingData=list(map(lambda line: Vectors.dense(line), df.select("count_vectors").collect()))
-	vector = np.vectorize(np.float)#not required
 	testingData = np.array(testingData)
+	vector = np.vectorize(float)#not required
+	#testingData = vectorizer.transform(input_arr)
+	#testingData = testingData.toarray()
 	testingData = np.reshape(testingData,(testingData.shape[0], -1))
 	testingData= vector(testingData)
-    
+	
+	testingData = pca.fit_transform(testingData)
+	
 	predictions = model.predict(testingData)
-	actual=df.select("Sentiment").collect()
+	#actual=df.select("Sentiment").collect()
+	actual= df.select('Sentiment').rdd.map(lambda row : row[0]).collect()
 	
-	accuracy=accuracy_score(actual,predictions)
 	
-	# print accuracy
-	print ("Accuracy: {0:.4f}".format(accuracy))
+	actual=[int(i) for i in actual]
+	predictions=[int(i) for i in predictions]
+	
+	act=list()
+	for i in actual:
+		if i==4:
+			i=1
+		act.append(i)
+	correct=0
+	for i in range(len(act)):
+		if act[i]==predictions[i]:
+			correct+=1
+	accuracy=correct/len(act)
+	print ("Accuracy: ", accuracy)
 
 # Main entry point for all streaming functionality
 if __name__ == '__main__':

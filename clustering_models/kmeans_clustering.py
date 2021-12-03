@@ -6,14 +6,23 @@ from pyspark.ml.evaluation import ClusteringEvaluator
 from sklearn.metrics import accuracy_score
 import numpy as np
 
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+import termplotlib as tpl
+import plotext as plx
+
 
 def clustering(df, spark):
 
+	pca = PCA(2)
 	trainingData=list(map(lambda line: Vectors.dense(line), df.select("count_vectors").collect()))
-	vector = np.vectorize(np.float)#not required
+	vector = np.vectorize(float)#not required
 	trainingData = np.array(trainingData)
 	trainingData = np.reshape(trainingData,(trainingData.shape[0], -1))
 	trainingData= vector(trainingData)
+	
+	trainingData = pca.fit_transform(trainingData)
+	
 	num_clusters = 2
 	kmeans_model = MiniBatchKMeans(n_clusters=num_clusters, init='k-means++', n_init=1, 
 		                     init_size=1000, batch_size=1000, verbose=False, max_iter=1000)
@@ -22,7 +31,14 @@ def clustering(df, spark):
 	predictions = kmeans.predict(trainingData)
 	actual=df.select("Sentiment").collect()
 	
-	act=[]
+	#filtered_label0 = trainingData[predictions == 0]
+	'''
+	print(trainingData[:,0],trainingData[:,1])
+	plx.plot(trainingData[:,0],trainingData[:,1])
+	plx.show()
+	'''
+	predictions=list(predictions)
+	act=list()
 	for i in actual:
 		if i==4:
 			i=1
@@ -34,7 +50,7 @@ def clustering(df, spark):
 	accuracy=correct/len(act)
 	#print(predictions)
 	# print accuracy
-	print ("Accuracy: {0:.4f}".format(accuracy))
+	print ("Accuracy: ", accuracy)
 	return kmeans
 	# printing the predicted cluster assignments on new data points as they arrive.
 	'''
