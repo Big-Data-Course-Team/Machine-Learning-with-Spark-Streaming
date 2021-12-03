@@ -17,10 +17,12 @@ from pyspark.streaming import StreamingContext
 from pyspark.sql import SQLContext, Row, SparkSession
 from pyspark.sql.types import *
 
-from preprocessing.preprocess import preprocessing
-from classification_models.pipeline_sparkml import custom_model_pipeline, get_model
-from clustering_models.kmeans_clustering import clustering
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
+from sklearn.cluster import MiniBatchKMeans
+
+from preprocessing.preprocess import *
+from classification_models.pipeline_sparkml import *
+from clustering_models.kmeans_clustering import clustering
 
 '''
  ---------------------------- Constant definitions ----------------------------------
@@ -52,10 +54,21 @@ spark.sparkContext.setLogLevel("ERROR")
 # Batch interval of 5 seconds - TODO: Change according to necessity
 ssc = StreamingContext(sc, 5)
 
-# Define countvectorizer - TODO: figure out how to get HV to work
+'''
+ ---------------------------- Model definitions -------------------------------------
+'''
+
+# Define CountVectorizer
+CountVectorizer.partial_fit = partial_fit
 vectorizer = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
+
+# Define HashVectorizer - TODO: figure out how to get HV to work
 #vectorizer = HashingVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
-	
+
+# Define, initialize BatchKMeans Model
+num_clusters = 2
+kmeans_model = MiniBatchKMeans(n_clusters=num_clusters, init='k-means++', n_init=1, 
+							   init_size=1000, batch_size=1000, verbose=False, max_iter=1000)
 
 '''
  ---------------------------- Processing -------------------------------------------
@@ -63,42 +76,41 @@ vectorizer = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='engl
 # Process each stream - needs to run ML models
 def process(rdd):
 	
-	global schema, spark, vectorizer
+	global schema, spark, vectorizer, kmeans_model
+	
+	# ==================Dataframe Creation==============
 	
 	# Collect all records
 	records = rdd.collect()
 	
 	# List of dicts
-	dicts = [i for j in records for i in list(json.loads(j).values())]
+	dicts = [i for j in records 
+					 for i in list(json.loads(j).values())]
 	
 	if len(dicts) == 0:
 		return
 	
 	# Create a DataFrame with each stream	
-	df = spark.createDataFrame((Row(**d) for d in dicts), schema)
+	df = spark.createDataFrame((Row(**d) for d in dicts), 
+								schema)
+	# ==================================================
 	
-	# Perform preprocessing
-	df = preprocessing(df)
-	
-	# ==================Test preprocessing==============
-	print('After preprocessing:\n')
+	# ==================Data Cleaning + Test============
+	df = df_preprocessing(df)
+	print('\nAfter cleaning:\n')
 	df.show()
 	# ==================================================
 	
-	df=custom_model_pipeline(df, spark, vectorizer)
-	
-	print("After Pipeline")
+	# ==================Preprocessing + Test============
+	df = transformers_pipeline(df, spark, vectorizer)
+	print("\nAfter Preprocessing:\n")
 	df.show()
-	
-	# ===============Logistic Regression================
-	
+	# ==================================================
 	
 	
-	
-	clustering(df, spark)
-	
-	#curr_model = get_model()
-	#curr_model.partial_fit(df.select('tweet'), df.select('sentiment'), classes=[0, 4])
+	# ===============KMeans Clustering + Test===========
+	kmeans_model = clustering(df, spark, kmeans_model)
+	# ==================================================
 	
 	# Save the model to a file
 	#pipeline.write().overwrite().save("./pipeline")

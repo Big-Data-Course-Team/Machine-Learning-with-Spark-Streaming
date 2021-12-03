@@ -1,63 +1,68 @@
+'''
+MLSS: Machine Learning with Spark Streaming
+Dataset: Tweet Sentiment Analysis
+Submission by: Team BD_078_460_474_565
+Course: Big Data, Fall 2021
+'''
+
 from pyspark.mllib.linalg import Vectors
 from pyspark.mllib.regression import LabeledPoint
 from pyspark.mllib.clustering import StreamingKMeans
-from sklearn.cluster import MiniBatchKMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
 from sklearn.metrics import accuracy_score
-import numpy as np
-
 from sklearn.decomposition import PCA
+
+import numpy as np
 import matplotlib.pyplot as plt
 import termplotlib as tpl
 import plotext as plx
 
-
-def clustering(df, spark):
+def clustering(df, spark, kmeans_model):
 
 	pca = PCA(2)
-	#df = df.dropna()
-	trainingData=list(map(lambda line: Vectors.dense(line), df.select("count_vectors").collect()))
+	trainingData = list(map(lambda line: Vectors.dense(line), df.select("count_vectors").collect()))
 	vector = np.vectorize(float)#not required
 	trainingData = np.array(trainingData)
 	trainingData = np.reshape(trainingData,(trainingData.shape[0], -1))
-	trainingData= vector(trainingData)
+	trainingData = vector(trainingData)
 	
 	trainingData = pca.fit_transform(trainingData)
 	
-	num_clusters = 2
-	kmeans_model = MiniBatchKMeans(n_clusters=num_clusters, init='k-means++', n_init=1, 
-		                     init_size=1000, batch_size=1000, verbose=False, max_iter=1000)
+	kmeans_model = kmeans_model.partial_fit(trainingData)
 	
-	kmeans = kmeans_model.partial_fit(trainingData)
-	predictions = kmeans.predict(trainingData)
-	actual=df.select("Sentiment").collect()
+	print("KMeans Cluster Centers:", kmeans_model.cluster_centers_)
 	
-	#filtered_label0 = trainingData[predictions == 0]
+	predictions = kmeans_model.predict(trainingData)
+	actual = df.select("Sentiment").collect()
 	
-	print(trainingData[:,0],trainingData[:,1])
+	#print(trainingData[:,0],trainingData[:,1])
+	
+	# TODO: Move plotting to a separate function/file
 	plt.scatter(trainingData[:,0],trainingData[:,1],color = 'red')
 	plt.show()
 
-	predictions=list(predictions)
-	act=list()
+	predictions = list(predictions)
+	act = list()
 	for i in actual:
-		if i==4:
-			i=1
+		if i == 4:
+			i = 1
 		act.append(i)
-	correct=0
+	correct = 0
 	for i in range(len(act)):
-		if act[i]==predictions[i]:
-			correct+=1
-	accuracy=correct/len(act)
-	#print(predictions)
-	# print accuracy
-	#print ("Accuracy: ", accuracy)
-	return kmeans
+		if act[i] == predictions[i]:
+			correct += 1
+	accuracy = correct / len(act)
+
+	print ("Accuracy: ", accuracy)
+
+	return kmeans_model
+	
 	# printing the predicted cluster assignments on new data points as they arrive.
 	'''
 	result = model.predictOnValues(testdata.map(lambda lp: (lp.label, lp.features)))
 	result.pprint()
 	'''
+	
 	#prediction=list(map(lambda line: Vectors.dense(line), df.select("sentiment").collect()))
 	#silhouette_score=[]
 	#Silhouette Score using ClusteringEvaluator() measures how close each point in one cluster is to points in the neighboring clusters
