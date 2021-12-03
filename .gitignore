@@ -1,1 +1,4 @@
 **/__pycache__/
+sentiment/*
+output.txt
+stream.py
