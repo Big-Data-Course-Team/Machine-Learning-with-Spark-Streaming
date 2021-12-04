@@ -7,7 +7,7 @@ Course: Big Data, Fall 2021
 import numpy as np
 from pyspark.mllib.linalg import Vectors
 
-def pac(df, spark, classifier):
+def PassiveAggressiveClassifier(df, spark, classifier):
 	"""
 	Perform passive aggressive classification on the dataframe with incremental learning
 	"""
