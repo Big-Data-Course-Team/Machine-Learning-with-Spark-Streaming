@@ -15,6 +15,8 @@ from pyspark.mllib.clustering import StreamingKMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
 from sklearn.metrics import accuracy_score
 
+plt.rcParams.update({'figure.figsize':(16, 9), 'figure.dpi':100})
+
 def clustering(df, spark, kmeans_model, num_iters):
 	
 	X_train = df.select('pca_vectors').collect()
@@ -51,10 +53,10 @@ def clustering(df, spark, kmeans_model, num_iters):
 	axis[1].set_xlabel('PCA1')
 	axis[1].set_ylabel('PCA2')
 	
-	if not os.path.isdir('./Clusters'):
-		os.mkdir('./Clusters')
+	if not os.path.isdir('./cluster_plots'):
+		os.mkdir('./cluster_plots')
 
-	img_file = open("./Clusters/fig" + str(num_iters), "wb+")
+	img_file = open("./cluster_plots/Batch_" + str(num_iters), "wb+")
 	plt.savefig(img_file)
 
 	return kmeans_model
