@@ -18,29 +18,39 @@ from pyspark.sql.types import *
 def partial_fit(self, batch_data):
 
 	if(hasattr(self, 'vocabulary_')):
+		
+		# Store previous vocabulary
 		old_vocab = self.vocabulary_
+		old_vocab_len = len(old_vocab)
+		print("Old vocab:")
+		print(list(old_vocab.items())[:20])
+		print("Length:", old_vocab_len)
+		
+		# Construct vocabulary from the current batch
+		self.fit(batch_data)
+		print("Fitted vocab:")
+		print(list(self.vocabulary_.items())[:20])
+		
+		# Increment indices of the words in the new vocab
+		for word in list(self.vocabulary_.keys()):
+			if word in old_vocab:
+				del self.vocabulary_[word]
+			else:
+				self.vocabulary_[word] += old_vocab_len
+		
+		# Append and set new vocab
+		old_vocab.update(self.vocabulary_)
+		self.vocabulary_ = old_vocab
+		print("Final vocab:")
+		print(list(self.vocabulary_.items())[:20])
+
 	else:
-		old_vocab = {}
-
-	self.fit(batch_data)
-
-	
-	old_vocab_set = set(old_vocab.keys())
-	new_vocab = [None] * len(old_vocab)
-	
-	
-	for k in old_vocab:
-		new_vocab[old_vocab[k]] = k
+		self.fit(batch_data)
 		
-	for k in self.vocabulary_:
-		if k not in old_vocab_set:
-			new_vocab += [k]
-		
-	self.vocabulary_ = {new_vocab[i] : i for i in range(len(new_vocab))}
-	
 	return self
 
-def transformers_pipeline(df, spark, vectorizer, inputCols = ["tweet", "sentiment"], n=3):
+# Count vectorizer transformation on the column of tweets
+def CV_transformer(df, spark, vectorizer, inputCols = ["tweet", "sentiment"], n=3):
 	
 	input_str = 'tokens_noStop'
 	
@@ -56,9 +66,11 @@ def transformers_pipeline(df, spark, vectorizer, inputCols = ["tweet", "sentimen
 	# Count vectorizer - maps a list of documents to a matrix (sparse)
 	vectorizer.partial_fit(input_arr)
 	
+	# Tranform list of tweets to list of sparse array representations
 	output_arr = vectorizer.transform(input_arr)
 	output_arr = output_arr.toarray()
 
+	# Create a dataframe containing output lists to join with the original 
 	output_col = list(map(lambda x: [x[0], x[1].tolist()], zip(input_str_arr, output_arr)))
 	
 	schema = StructType([
@@ -67,15 +79,11 @@ def transformers_pipeline(df, spark, vectorizer, inputCols = ["tweet", "sentimen
 	])
 	
 	dff = spark.createDataFrame(data=output_col, schema=schema)
-
-	print("Created new df")	
-
+	
+	# Join the original and newly created dataframes on the input column
 	df = df.join(dff, dff.tokens_noStop_copy == df.tokens_noStop, 'inner')
 	df = df.drop('tokens_noStop_copy')
-	
-	print("Joined")	
 
-	df.show()
 	return df
 
 	# ------------------------------ Pipeline worked on till CV (to be tested) ----------------------------------------------
@@ -107,6 +115,7 @@ def df_preprocessing(dataframe):
 	
 	# Remove URLs
 	new_df = new_df.withColumn('cleaned_tweets', regexp_replace('cleaned_tweets', r'http\S+', ""))
+	new_df = new_df.withColumn('cleaned_tweets', regexp_replace('cleaned_tweets', r'www\S+', ""))
 	
 	# Remove all content that are replied tweets
 	new_df = new_df.withColumn('cleaned_tweets', regexp_replace('cleaned_tweets', 'RT\s*@[^:]*:.*', ""))

@@ -102,7 +102,7 @@ def process(rdd):
 	# ==================================================
 	
 	# ==================Preprocessing + Test============
-	df = transformers_pipeline(df, spark, vectorizer)
+	df = CV_transformer(df, spark, vectorizer)
 	print("\nAfter Preprocessing:\n")
 	df.show()
 	# ==================================================
