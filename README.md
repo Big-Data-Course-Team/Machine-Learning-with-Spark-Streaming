@@ -10,20 +10,10 @@
 │   ├── kmeans_clustering.py
 ├── cluster_plots
 │   ├── Batch_1
-│   ├── Batch_10
-│   ├── Batch_11
-│   ├── Batch_12
-│   ├── Batch_13
-│   ├── Batch_14
-│   ├── Batch_15
 │   ├── Batch_2
 │   ├── Batch_3
 │   ├── Batch_4
 │   ├── Batch_5
-│   ├── Batch_6
-│   ├── Batch_7
-│   ├── Batch_8
-│   └── Batch_9
 ├── LICENSE
 ├── model.pkl
 ├── num_iters
