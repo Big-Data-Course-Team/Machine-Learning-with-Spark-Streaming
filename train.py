@@ -22,6 +22,8 @@ from sklearn.cluster import MiniBatchKMeans
 from sklearn.linear_model import SGDClassifier
 from sklearn.naive_bayes import MultinomialNB
 
+from sklearn.decomposition import IncrementalPCA
+
 from preprocessing.preprocess import *
 from classification_models.pipeline_sparkml import *
 from classification_models.logistic_regression import *
@@ -61,13 +63,15 @@ ssc = StreamingContext(sc, 5)
 '''
  ---------------------------- Model definitions -------------------------------------
 '''
+# Define the Incremental PCA
+pca = IncrementalPCA(n_components=10)
 
 # Define CountVectorizer
-CountVectorizer.partial_fit = partial_fit
-vectorizer = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
+CountVectorizer.cv_partial_fit = cv_partial_fit
+cv = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
 
 # Define HashVectorizer - TODO: figure out how to get HV to work
-#vectorizer = HashingVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
+hv = HashingVectorizer(n_features=2**13, lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
 
 # Define, initialize BatchKMeans Model
 num_clusters = 2
@@ -83,7 +87,7 @@ multi_nb_model = MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
 # Process each stream - needs to run ML models
 def process(rdd):
 	
-	global schema, spark, vectorizer, \
+	global pca, schema, spark, vectorizer, \
 		   kmeans_model, lr_model, multi_nb_model
 	
 	# ==================Dataframe Creation==============
@@ -101,46 +105,47 @@ def process(rdd):
 	# Create a DataFrame with each stream	
 	df = spark.createDataFrame((Row(**d) for d in dicts), 
 								schema)
-	# ==================================================
+	# ====================================================
 	
-	# ==================Data Cleaning + Test============
+	# ==================Data Cleaning + Test==============
 	df = df_preprocessing(df)
 	print('\nAfter cleaning:\n')
 	df.show()
-	# ==================================================
+	# ====================================================
 	
-	# ==================Preprocessing + Test============
-	df = transformers_pipeline(df, spark, vectorizer)
+	# ==================Preprocessing + Test==============
+	df = transformers_pipeline(df, spark, hv, pca)
 	print("\nAfter Preprocessing:\n")
 	df.show()
-	# ==================================================
+	# ====================================================
 	
 	
-	# ==================Logistic Regression=============
-	lr_model = lr(df, spark, lr_model)
-	# ==================================================
+	# ==================Logistic Regression===============
+	#lr_model = lr(df, spark, lr_model)
+	# ====================================================
 	
-	# ==================Multinomial Naive Bayes=========
-	multi_nb_model = \
-			  MultiNBLearning(df, spark, multi_nb_model)
-	# ==================================================
+	# ==================Multinomial Naive Bayes===========
+	#multi_nb_model = \
+	#		  MultiNBLearning(df, spark, multi_nb_model)
+	# ====================================================
 
-	# ===============KMeans Clustering + Test===========
-	with open('./num_iters', "r") as ni:
-		num_iters = int(ni.read())
+	# ===============KMeans Clustering + Test=============
+	#with open('./num_iters', "r") as ni:
+	#	num_iters = int(ni.read())
 	
-	num_iters+=1
+	#num_iters+=1
 
-	kmeans_model = clustering(df, spark, kmeans_model, num_iters)
+	#kmeans_model = \
+	#		clustering(df, spark, kmeans_model, num_iters)
 	
-	with open('./num_iters', "w") as ni:
-		ni.write(str(num_iters))
-	# ==================================================
+	#with open('./num_iters', "w") as ni:
+	#	ni.write(str(num_iters))
+	# ====================================================
 	
 	# Save the model to a file
 	#pipeline.write().overwrite().save("./pipeline")
-	with open('model.pkl', 'wb') as f:
-		pickle.dump(kmeans_model, f)
+	#with open('model.pkl', 'wb') as f:
+	#	pickle.dump(kmeans_model, f)
 
 
 # Main entry point for all streaming functionality
