@@ -24,6 +24,7 @@ from sklearn.linear_model import SGDClassifier
 from preprocessing.preprocess import *
 from classification_models.pipeline_sparkml import *
 from classification_models.logistic_regression import *
+from sklearn.linear_model import PassiveAggressiveClassifier
 from clustering_models.kmeans_clustering import clustering
 
 
@@ -75,6 +76,7 @@ kmeans_model = MiniBatchKMeans(n_clusters=num_clusters, init='k-means++', n_init
 
 
 lr_model = SGDClassifier(loss='log')
+pac_model = PassiveAggressiveClassifier(C = 0.5, random_state = 5)
 
 '''
  ---------------------------- Processing -------------------------------------------
@@ -115,7 +117,11 @@ def process(rdd):
 	
 	
 	# =================Logistic Regression==============
-	lr_model = lr(df, spark, lr_model)
+	#lr_model = lr(df, spark, lr_model)
+	# ==================================================
+	
+	# =================Passive Aggressive function==============
+	pac_model = lr(df, spark, pac_model)
 	# ==================================================
 	
 	# ===============KMeans Clustering + Test===========
