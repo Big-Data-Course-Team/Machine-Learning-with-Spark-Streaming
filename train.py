@@ -19,10 +19,13 @@ from pyspark.sql.types import *
 
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 from sklearn.cluster import MiniBatchKMeans
+from sklearn.linear_model import SGDClassifier
 
 from preprocessing.preprocess import *
 from classification_models.pipeline_sparkml import *
+from classification_models.logistic_regression import *
 from clustering_models.kmeans_clustering import clustering
+
 
 '''
  ---------------------------- Constant definitions ----------------------------------
@@ -70,13 +73,16 @@ num_clusters = 2
 kmeans_model = MiniBatchKMeans(n_clusters=num_clusters, init='k-means++', n_init=1, 
 							   init_size=1000, batch_size=1000, verbose=False, max_iter=1000)
 
+
+lr_model = SGDClassifier(loss='log')
+
 '''
  ---------------------------- Processing -------------------------------------------
 '''
 # Process each stream - needs to run ML models
 def process(rdd):
 	
-	global schema, spark, vectorizer, kmeans_model
+	global schema, spark, vectorizer, kmeans_model, lr_model
 	
 	# ==================Dataframe Creation==============
 	
@@ -107,6 +113,10 @@ def process(rdd):
 	df.show()
 	# ==================================================
 	
+	
+	# =================Logistic Regression==============
+	lr_model = lr(df, spark, lr_model)
+	# ==================================================
 	
 	# ===============KMeans Clustering + Test===========
 	kmeans_model = clustering(df, spark, kmeans_model)
