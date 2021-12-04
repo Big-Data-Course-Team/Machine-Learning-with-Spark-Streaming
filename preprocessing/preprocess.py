@@ -5,12 +5,8 @@ Submission by: Team BD_078_460_474_565
 Course: Big Data, Fall 2021
 '''
 
-#from pyspark.ml.feature import VectorAssembler, StringIndexer, ChiSqSelector
-
-
 from pyspark.sql.functions import regexp_replace
 from pyspark.ml.feature import Tokenizer, StopWordsRemover
-
 from pyspark.sql.types import *
 
 
@@ -42,7 +38,7 @@ def cv_partial_fit(self, batch_data):
 		
 	return self
 
-def transformers_pipeline(df, spark, vectorizer, pca, inputCols = ["tweet", "sentiment"], n=3):
+def transformers_pipeline(df, spark, pca, minmaxscaler, vectorizer, inputCols = ["tweet", "sentiment"], n=3):
 	
 	# Get a list of rows - each row is a list of strings (tokens without stop words)
 	input_col = df.select('tokens_noStop').collect()
@@ -50,10 +46,8 @@ def transformers_pipeline(df, spark, vectorizer, pca, inputCols = ["tweet", "sen
 	# Used for the join - original column
 	input_str_arr = [row['tokens_noStop'] for row in input_col]
 	
-	# Used by count vectorizer - list of strings -> '["word", "another", "oh"]'
 	input_arr = [str(a) for a in input_str_arr]
 	
-	# Count vectorizer - maps a list of documents to a matrix (sparse)
 	vectorizer.partial_fit(input_arr)
 	
 	output_arr = vectorizer.transform(input_arr)
@@ -61,22 +55,25 @@ def transformers_pipeline(df, spark, vectorizer, pca, inputCols = ["tweet", "sen
 	
 	labels_col = df.select('sentiment').collect()
 	
-	# Used for the join - original column
 	labels_str_arr = [row['sentiment'] for row in labels_col]
 	
-	# Used by count vectorizer - list of strings -> '["word", "another", "oh"]'
 	labels_arr = [int(a) for a in labels_str_arr]
 	
 	pca_X_train = list(map(lambda x: x.tolist(), output_arr))
 	pca.partial_fit(pca_X_train, labels_arr)
 	pca_transformed = pca.transform(pca_X_train)
 	
-	output_col = list(map(lambda x: [x[0], x[1].tolist(), x[2].tolist()], zip(input_str_arr, output_arr, pca_transformed)))
+	minmaxscaler.partial_fit(pca_transformed)
+	minmax_pca = minmaxscaler.transform(pca_transformed)
+	
+	output_col = list(map(lambda x: [x[0], x[1].tolist(), x[2].tolist(), x[3].tolist()], \
+							zip(input_str_arr, output_arr, pca_transformed, minmax_pca)))
 	
 	schema = StructType([
 		StructField('tokens_noStop_copy', ArrayType(StringType())),
 		StructField('hashed_vectors', ArrayType(FloatType())),
-		StructField('pca_vectors', ArrayType(FloatType()))
+		StructField('pca_vectors', ArrayType(FloatType())),
+		StructField('minmax_pca_vectors', ArrayType(FloatType())),
 	])
 	
 	dff = spark.createDataFrame(data=output_col, schema=schema)
@@ -85,19 +82,6 @@ def transformers_pipeline(df, spark, vectorizer, pca, inputCols = ["tweet", "sen
 	df = df.drop(*['tweet', 'cleaned_tweets', 'tokens', 'tokens_noStop', 'tokens_noStop_copy'])
 	
 	return df
-
-	# ------------------------------ Pipeline worked on till CV (to be tested) ----------------------------------------------
-		
-		# Compute the IDF score given a set of tweets
-		#idf = IDF(inputCol="{0}_cv".format(i), outputCol="{0}_tfidf".format(i), minDocFreq=5)
-		#df = cv.transform(idf)
-
-	# Merges multiple columns into a vector column
-	#assembler = VectorAssembler(inputCols=["{0}_tfidf".format(i) for i in range(1, n + 1)], outputCol="rawFeatures")
-	
-	#label_stringIdx = StringIndexer(inputCol = "Sentiment", outputCol = "label")
-	
-	#selector = ChiSqSelector(numTopFeatures=2**14,featuresCol='rawFeatures', outputCol="features")
 	
 def df_preprocessing(dataframe):
 

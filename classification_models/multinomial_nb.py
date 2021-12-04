@@ -7,17 +7,20 @@ Course: Big Data, Fall 2021
 import numpy as np
 
 from pyspark.mllib.linalg import Vectors
-from sklearn.decomposition import PCA, IncrementalPCA
-
 
 def MultiNBLearning(df, spark, classifier):
 	"""
 	Perform online learning of a Multinomial Naive Bayes model with batches of data
 	"""
 	
-	trainingData = df.select("count_vectors", "sentiment").collect()
+	trainingData = df.select("minmax_pca_vectors", "sentiment").collect()
+	# OR 
+	# trainingData = df.select("hashed_vectors", "sentiment").collect()
 	
-	X_train = np.array(list(map(lambda row: row.count_vectors, trainingData)))
+	X_train = np.array(list(map(lambda row: row.minmax_pca_vectors, trainingData)))
+	# OR 
+	# X_train = np.array(list(map(lambda row: row.hashed_vectors, trainingData)))
+	
 	y_train = np.array(list(map(lambda row: row.sentiment, trainingData)), dtype='int64')
 
 	# Fit the LR classifier

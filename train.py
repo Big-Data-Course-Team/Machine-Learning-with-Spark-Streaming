@@ -22,6 +22,7 @@ from sklearn.cluster import MiniBatchKMeans
 from sklearn.linear_model import SGDClassifier
 from sklearn.naive_bayes import MultinomialNB
 
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.decomposition import IncrementalPCA
 
 from preprocessing.preprocess import *
@@ -66,6 +67,9 @@ ssc = StreamingContext(sc, 5)
 # Define the Incremental PCA
 pca = IncrementalPCA(n_components=10)
 
+# Define MinMax Scaler
+minmaxscaler = MinMaxScaler()
+
 # Define CountVectorizer
 CountVectorizer.cv_partial_fit = cv_partial_fit
 cv = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
@@ -78,17 +82,20 @@ num_clusters = 2
 kmeans_model = MiniBatchKMeans(n_clusters=num_clusters, init='k-means++', n_init=1, 
 							   init_size=1000, batch_size=1000, verbose=False, max_iter=1000)
 
-
+# Define LR Model
 lr_model = SGDClassifier(loss='log')
+
+# Define NB Model
 multi_nb_model = MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
+
 '''
  ---------------------------- Processing -------------------------------------------
 '''
 # Process each stream - needs to run ML models
 def process(rdd):
 	
-	global pca, schema, spark, vectorizer, \
-		   kmeans_model, lr_model, multi_nb_model
+	global schema, spark, pca, minmaxscaler, cv, hv, \
+		   lr_model, multi_nb_model, kmeans_model
 	
 	# ==================Dataframe Creation==============
 	
@@ -114,19 +121,19 @@ def process(rdd):
 	# ====================================================
 	
 	# ==================Preprocessing + Test==============
-	df = transformers_pipeline(df, spark, hv, pca)
+	df = transformers_pipeline(df, spark, pca, minmaxscaler, hv)
 	print("\nAfter Preprocessing:\n")
 	df.show()
 	# ====================================================
 	
 	
 	# ==================Logistic Regression===============
-	#lr_model = lr(df, spark, lr_model)
+	lr_model = lr(df, spark, lr_model)
 	# ====================================================
 	
 	# ==================Multinomial Naive Bayes===========
-	#multi_nb_model = \
-	#		  MultiNBLearning(df, spark, multi_nb_model)
+	multi_nb_model = \
+			  MultiNBLearning(df, spark, multi_nb_model)
 	# ====================================================
 
 	# ===============KMeans Clustering + Test=============
