@@ -64,7 +64,7 @@ ssc = StreamingContext(sc, 5)
  ---------------------------- Model definitions -------------------------------------
 '''
 # Define the Incremental PCA
-pca = IncrementalPCA(n_components=10)
+pca = IncrementalPCA(n_components=2)
 
 # Define MinMax Scaler
 minmaxscaler = MinMaxScaler()
@@ -129,12 +129,12 @@ def process(rdd):
 	# ============================================================
 	
 	# ==================Logistic Regression=======================
-	lr_model = lr(df, spark, lr_model)
+	#lr_model = lr(df, spark, lr_model)
 	# ============================================================
 	
 	# ==================Multinomial Naive Bayes===================
-	multi_nb_model = \
-			  MultiNBLearning(df, spark, multi_nb_model)
+	#multi_nb_model = \
+	#		  MultiNBLearning(df, spark, multi_nb_model)
 	# ============================================================
 
 	# =================Passive Aggressive Model===================
@@ -142,16 +142,16 @@ def process(rdd):
 	# ============================================================
 
 	# ===============KMeans Clustering + Test=====================
-	#with open('./num_iters', "r") as ni:
-	#	num_iters = int(ni.read())
+	with open('./num_iters', "r") as ni:
+		num_iters = int(ni.read())
 	
-	#num_iters+=1
+	num_iters+=1
 
-	#kmeans_model = \
-	#		clustering(df, spark, kmeans_model, num_iters)
+	kmeans_model = \
+			clustering(df, spark, kmeans_model, num_iters)
 	
-	#with open('./num_iters', "w") as ni:
-	#	ni.write(str(num_iters))
+	with open('./num_iters', "w") as ni:
+		ni.write(str(num_iters))
 	# ============================================================
 	
 	# Save the model to a file
