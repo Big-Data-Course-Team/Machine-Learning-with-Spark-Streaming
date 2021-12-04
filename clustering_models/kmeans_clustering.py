@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import termplotlib as tpl
 import plotext as plx
+import os
 
 from pyspark.mllib.clustering import StreamingKMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
@@ -52,6 +53,9 @@ def clustering(df, spark, kmeans_model, num_iters):
 	axis[1].set_xlabel('PCA1')
 	axis[1].set_ylabel('PCA2')
 	
+	if not os.path.isdir('./Clusters'):
+		os.mkdir('./Clusters')
+
 	img_file = open("./Clusters/fig" + str(num_iters), "wb+")
 	plt.savefig(img_file)
 
