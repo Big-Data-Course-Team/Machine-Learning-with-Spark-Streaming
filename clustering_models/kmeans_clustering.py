@@ -6,6 +6,7 @@ Course: Big Data, Fall 2021
 '''
 
 import matplotlib.pyplot as plt
+import os
 
 from pyspark.mllib.linalg import Vectors
 from pyspark.mllib.regression import LabeledPoint
@@ -41,6 +42,10 @@ def clustering(df, spark, kmeans_model, num_iters):
 	
 	# TODO: Move plotting to a separate function/file
 	plt.scatter(trainingData[:,0],trainingData[:,1],color = 'red')
+	
+	
+	if not os.path.isdir('./Clusters'):
+		os.mkdir('./Clusters')
 	img_file=open("./Clusters/fig"+str(num_iters), "wb+")
 	plt.savefig(img_file)
 
