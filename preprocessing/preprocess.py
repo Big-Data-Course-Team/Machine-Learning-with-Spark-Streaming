@@ -53,37 +53,30 @@ def transformers_pipeline(df, spark, vectorizer, pca, inputCols = ["tweet", "sen
 	# Used by count vectorizer - list of strings -> '["word", "another", "oh"]'
 	input_arr = [str(a) for a in input_str_arr]
 	
-	print("Checkout 1!")
-	
 	# Count vectorizer - maps a list of documents to a matrix (sparse)
 	vectorizer.partial_fit(input_arr)
 	
-	print("Checkpoint 2!")
-	
 	output_arr = vectorizer.transform(input_arr)
 	output_arr = output_arr.toarray()
-	print(output_arr)
 	
-	#labels_col = df.select('sentiment').collect()
+	labels_col = df.select('sentiment').collect()
 	
 	# Used for the join - original column
-	#labels_str_arr = [row['sentiment'] for row in labels_col]
+	labels_str_arr = [row['sentiment'] for row in labels_col]
 	
 	# Used by count vectorizer - list of strings -> '["word", "another", "oh"]'
-	#labels_arr = [int(a) for a in labels_str_arr]
+	labels_arr = [int(a) for a in labels_str_arr]
 	
-	#pca_X_train = list(map(lambda x: x.tolist(), output_arr))
-	#pca.partial_fit(pca_X_train, labels_arr)
-	#pca_transformed = pca.transform(pca_X_train)
+	pca_X_train = list(map(lambda x: x.tolist(), output_arr))
+	pca.partial_fit(pca_X_train, labels_arr)
+	pca_transformed = pca.transform(pca_X_train)
 	
-	#print(pca_transformed.toarray())
-
-	output_col = list(map(lambda x: [x[0], x[1].tolist()], zip(input_str_arr, output_arr)))
+	output_col = list(map(lambda x: [x[0], x[1].tolist(), x[2].tolist()], zip(input_str_arr, output_arr, pca_transformed)))
 	
 	schema = StructType([
 		StructField('tokens_noStop_copy', ArrayType(StringType())),
-		StructField('count_vectors', ArrayType(FloatType()))
-#		StructField('count_vectors', ArrayType(IntegerType()))
+		StructField('hashed_vectors', ArrayType(FloatType())),
+		StructField('pca_vectors', ArrayType(FloatType()))
 	])
 	
 	dff = spark.createDataFrame(data=output_col, schema=schema)
