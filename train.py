@@ -128,8 +128,9 @@ def process(rdd):
 	# ===============KMeans Clustering + Test===========
 	with open('./num_iters', "r") as ni:
 		num_iters = int(ni.read())
-	num_iters+=1
 	
+	num_iters+=1
+
 	kmeans_model = clustering(df, spark, kmeans_model, num_iters)
 	
 	with open('./num_iters', "w") as ni:

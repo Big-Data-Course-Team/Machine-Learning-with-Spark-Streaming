@@ -68,14 +68,11 @@ def transformers_pipeline(df, spark, vectorizer, inputCols = ["tweet", "sentimen
 	
 	dff = spark.createDataFrame(data=output_col, schema=schema)
 
-	print("Created new df")	
-
 	df = df.join(dff, dff.tokens_noStop_copy == df.tokens_noStop, 'inner')
 	df = df.drop('tokens_noStop_copy')
-	
-	print("Joined")	
-
 	df.show()
+	df.drop(['cleaned_tweets', 'tokens', 'tokens_noStop'])
+	
 	return df
 
 	# ------------------------------ Pipeline worked on till CV (to be tested) ----------------------------------------------
