@@ -5,6 +5,8 @@ Submission by: Team BD_078_460_474_565
 Course: Big Data, Fall 2021
 '''
 
+import matplotlib.pyplot as plt
+
 from pyspark.mllib.linalg import Vectors
 from pyspark.mllib.regression import LabeledPoint
 from pyspark.mllib.clustering import StreamingKMeans
@@ -17,7 +19,7 @@ import matplotlib.pyplot as plt
 import termplotlib as tpl
 import plotext as plx
 
-def clustering(df, spark, kmeans_model):
+def clustering(df, spark, kmeans_model, num_iters):
 
 	pca = PCA(2)
 	trainingData = list(map(lambda line: Vectors.dense(line), df.select("count_vectors").collect()))
@@ -33,28 +35,32 @@ def clustering(df, spark, kmeans_model):
 	print("KMeans Cluster Centers:", kmeans_model.cluster_centers_)
 	
 	predictions = kmeans_model.predict(trainingData)
-	actual = df.select("Sentiment").collect()
+	#actual = df.select("Sentiment").collect()
 	
 	#print(trainingData[:,0],trainingData[:,1])
 	
 	# TODO: Move plotting to a separate function/file
 	plt.scatter(trainingData[:,0],trainingData[:,1],color = 'red')
-	plt.show()
+	img_file=open("./Clusters/fig"+str(num_iters), "wb+")
+	plt.savefig(img_file)
 
-	predictions = list(predictions)
-	act = list()
+	actual= df.select('Sentiment').rdd.map(lambda row : row[0]).collect()
+	
+	
+	actual=[int(i) for i in actual]
+	predictions=[int(i) for i in predictions]
+	
+	act=list()
 	for i in actual:
-		if i == 4:
-			i = 1
+		#if i==4:
+		#	i=1
 		act.append(i)
-	correct = 0
+	correct=0
 	for i in range(len(act)):
-		if act[i] == predictions[i]:
-			correct += 1
-	accuracy = correct / len(act)
-
+		if act[i]==predictions[i]:
+			correct+=1
+	accuracy=correct/len(act)
 	print ("Accuracy: ", accuracy)
-
 	return kmeans_model
 	
 	# printing the predicted cluster assignments on new data points as they arrive.

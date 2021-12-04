@@ -24,6 +24,8 @@ from preprocessing.preprocess import *
 from classification_models.pipeline_sparkml import *
 from clustering_models.kmeans_clustering import clustering
 
+from functools import partial
+
 '''
  ---------------------------- Constant definitions ----------------------------------
 '''
@@ -73,6 +75,9 @@ kmeans_model = MiniBatchKMeans(n_clusters=num_clusters, init='k-means++', n_init
 '''
  ---------------------------- Processing -------------------------------------------
 '''
+
+
+
 # Process each stream - needs to run ML models
 def process(rdd):
 	
@@ -109,7 +114,14 @@ def process(rdd):
 	
 	
 	# ===============KMeans Clustering + Test===========
-	kmeans_model = clustering(df, spark, kmeans_model)
+	with open('./num_iters', "r") as ni:
+		num_iters = int(ni.read())
+	num_iters+=1
+	
+	kmeans_model = clustering(df, spark, kmeans_model, num_iters)
+	
+	with open('./num_iters', "w") as ni:
+		ni.write(str(num_iters))
 	# ==================================================
 	
 	# Save the model to a file
@@ -127,6 +139,10 @@ if __name__ == '__main__':
 
 	# TODO: check if split is necessary
 	json_str = lines.flatMap(lambda x: x.split('\n'))
+	
+	file=open("./num_iters","w")
+	file.write("0")
+	file.close()
 	
 	
 	# Process each RDD
