@@ -19,7 +19,7 @@ from pyspark.sql.types import *
 
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 from sklearn.cluster import MiniBatchKMeans
-from sklearn.linear_model import SGDClassifier
+from sklearn.linear_model import SGDClassifier, PassiveAggressiveClassifier
 from sklearn.naive_bayes import MultinomialNB
 
 from sklearn.preprocessing import MinMaxScaler
@@ -29,7 +29,7 @@ from preprocessing.preprocess import *
 from classification_models.pipeline_sparkml import *
 from classification_models.logistic_regression import *
 from classification_models.multinomial_nb import *
-from clustering_models.kmeans_clustering import clustering
+from clustering_models.kmeans_clustering import *
 
 '''
  ---------------------------- Constant definitions ----------------------------------
@@ -88,6 +88,9 @@ lr_model = SGDClassifier(loss='log')
 # Define NB Model
 multi_nb_model = MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
 
+# Define PA Model
+pac_model = PassiveAggressiveClassifier(C = 0.5, random_state = 5)
+
 '''
  ---------------------------- Processing -------------------------------------------
 '''
@@ -95,9 +98,9 @@ multi_nb_model = MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
 def process(rdd):
 	
 	global schema, spark, pca, minmaxscaler, cv, hv, \
-		   lr_model, multi_nb_model, kmeans_model
+		   lr_model, multi_nb_model, pac_model, kmeans_model
 	
-	# ==================Dataframe Creation==============
+	# ==================Dataframe Creation=======================
 	
 	# Collect all records
 	records = rdd.collect()
@@ -112,31 +115,34 @@ def process(rdd):
 	# Create a DataFrame with each stream	
 	df = spark.createDataFrame((Row(**d) for d in dicts), 
 								schema)
-	# ====================================================
+	# ============================================================
 	
-	# ==================Data Cleaning + Test==============
+	# ==================Data Cleaning + Test======================
 	df = df_preprocessing(df)
 	print('\nAfter cleaning:\n')
 	df.show()
-	# ====================================================
+	# ============================================================
 	
-	# ==================Preprocessing + Test==============
+	# ==================Preprocessing + Test======================
 	df = transformers_pipeline(df, spark, pca, minmaxscaler, hv)
 	print("\nAfter Preprocessing:\n")
 	df.show()
-	# ====================================================
+	# ============================================================
 	
-	
-	# ==================Logistic Regression===============
+	# ==================Logistic Regression=======================
 	lr_model = lr(df, spark, lr_model)
-	# ====================================================
+	# ============================================================
 	
-	# ==================Multinomial Naive Bayes===========
+	# ==================Multinomial Naive Bayes===================
 	multi_nb_model = \
 			  MultiNBLearning(df, spark, multi_nb_model)
-	# ====================================================
+	# ============================================================
 
-	# ===============KMeans Clustering + Test=============
+	# =================Passive Aggressive Model===================
+	pac_model = lr(df, spark, pac_model)
+	# ============================================================
+
+	# ===============KMeans Clustering + Test=====================
 	#with open('./num_iters', "r") as ni:
 	#	num_iters = int(ni.read())
 	
@@ -147,7 +153,7 @@ def process(rdd):
 	
 	#with open('./num_iters', "w") as ni:
 	#	ni.write(str(num_iters))
-	# ====================================================
+	# ============================================================
 	
 	# Save the model to a file
 	#pipeline.write().overwrite().save("./pipeline")
