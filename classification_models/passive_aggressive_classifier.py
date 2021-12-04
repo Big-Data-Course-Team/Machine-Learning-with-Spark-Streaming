@@ -7,9 +7,9 @@ Course: Big Data, Fall 2021
 import numpy as np
 from pyspark.mllib.linalg import Vectors
 
-def lr(df, spark, classifier):
+def PassiveAggressiveClassifier(df, spark, classifier):
 	"""
-	Perform logistic regression on the dataframe with incremental learning
+	Perform passive aggressive classification on the dataframe with incremental learning
 	"""
 	
 	#trainingData = df.select("pca_vectors", "sentiment").collect()
@@ -28,14 +28,13 @@ def lr(df, spark, classifier):
 	
 	y_train = np.array(list(map(lambda row: row.sentiment, trainingData)), dtype='int64')
 	
-	# Fit the LR classifier
+	# Fit the pac classifier
 	classifier.partial_fit(X_train, y_train, classes=[0, 4])
 
 	predictions = classifier.predict(X_train)
 	
 	accuracy = np.count_nonzero(np.array(predictions) == y_train)/y_train.shape[0]
 	
-	print("Accuracy of LR:", accuracy)
+	print("Accuracy of pac:", accuracy)
 	
 	return classifier
-	

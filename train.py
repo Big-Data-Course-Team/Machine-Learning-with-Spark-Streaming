@@ -19,14 +19,16 @@ from pyspark.sql.types import *
 
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 from sklearn.cluster import MiniBatchKMeans
-from sklearn.linear_model import SGDClassifier
+from sklearn.linear_model import SGDClassifier, PassiveAggressiveClassifier
+from sklearn.naive_bayes import MultinomialNB
+
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.decomposition import IncrementalPCA
 
 from preprocessing.preprocess import *
-from classification_models.pipeline_sparkml import *
 from classification_models.logistic_regression import *
-from sklearn.linear_model import PassiveAggressiveClassifier
-from clustering_models.kmeans_clustering import clustering
-
+from classification_models.multinomial_nb import *
+from clustering_models.kmeans_clustering import *
 
 '''
  ---------------------------- Constant definitions ----------------------------------
@@ -61,21 +63,31 @@ ssc = StreamingContext(sc, 5)
 '''
  ---------------------------- Model definitions -------------------------------------
 '''
+# Define the Incremental PCA
+pca = IncrementalPCA(n_components=10)
+
+# Define MinMax Scaler
+minmaxscaler = MinMaxScaler()
 
 # Define CountVectorizer
-CountVectorizer.partial_fit = partial_fit
-vectorizer = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
+CountVectorizer.cv_partial_fit = cv_partial_fit
+cv = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
 
 # Define HashVectorizer - TODO: figure out how to get HV to work
-#vectorizer = HashingVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
+hv = HashingVectorizer(n_features=2**13, lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
 
 # Define, initialize BatchKMeans Model
 num_clusters = 2
 kmeans_model = MiniBatchKMeans(n_clusters=num_clusters, init='k-means++', n_init=1, 
 							   init_size=1000, batch_size=1000, verbose=False, max_iter=1000)
 
-
+# Define LR Model
 lr_model = SGDClassifier(loss='log')
+
+# Define NB Model
+multi_nb_model = MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
+
+# Define PA Model
 pac_model = PassiveAggressiveClassifier(C = 0.5, random_state = 5)
 
 '''
@@ -84,9 +96,10 @@ pac_model = PassiveAggressiveClassifier(C = 0.5, random_state = 5)
 # Process each stream - needs to run ML models
 def process(rdd):
 	
-	global schema, spark, vectorizer, kmeans_model, lr_model
+	global schema, spark, pca, minmaxscaler, cv, hv, \
+		   lr_model, multi_nb_model, pac_model, kmeans_model
 	
-	# ==================Dataframe Creation==============
+	# ==================Dataframe Creation=======================
 	
 	# Collect all records
 	records = rdd.collect()
@@ -101,44 +114,50 @@ def process(rdd):
 	# Create a DataFrame with each stream	
 	df = spark.createDataFrame((Row(**d) for d in dicts), 
 								schema)
-	# ==================================================
+	# ============================================================
 	
-	# ==================Data Cleaning + Test============
+	# ==================Data Cleaning + Test======================
 	df = df_preprocessing(df)
 	print('\nAfter cleaning:\n')
 	df.show()
-	# ==================================================
+	# ============================================================
 	
-	# ==================Preprocessing + Test============
-	df = transformers_pipeline(df, spark, vectorizer)
+	# ==================Preprocessing + Test======================
+	df = transformers_pipeline(df, spark, pca, minmaxscaler, hv)
 	print("\nAfter Preprocessing:\n")
 	df.show()
-	# ==================================================
+	# ============================================================
 	
+	# ==================Logistic Regression=======================
+	lr_model = lr(df, spark, lr_model)
+	# ============================================================
 	
-	# =================Logistic Regression==============
-	#lr_model = lr(df, spark, lr_model)
-	# ==================================================
+	# ==================Multinomial Naive Bayes===================
+	multi_nb_model = \
+			  MultiNBLearning(df, spark, multi_nb_model)
+	# ============================================================
+
+	# =================Passive Aggressive Model===================
+	#pac_model = PassiveAggressiveClassifier(df, spark, pac_model)
+	# ============================================================
+
+	# ===============KMeans Clustering + Test=====================
+	#with open('./num_iters', "r") as ni:
+	#	num_iters = int(ni.read())
 	
-	# =================Passive Aggressive function==============
-	pac_model = lr(df, spark, pac_model)
-	# ==================================================
+	#num_iters+=1
+
+	#kmeans_model = \
+	#		clustering(df, spark, kmeans_model, num_iters)
 	
-	# ===============KMeans Clustering + Test===========
-	with open('./num_iters', "r") as ni:
-		num_iters = int(ni.read())
-	num_iters+=1
-	
-	kmeans_model = clustering(df, spark, kmeans_model, num_iters)
-	
-	with open('./num_iters', "w") as ni:
-		ni.write(str(num_iters))
-	# ==================================================
+	#with open('./num_iters', "w") as ni:
+	#	ni.write(str(num_iters))
+	# ============================================================
 	
 	# Save the model to a file
 	#pipeline.write().overwrite().save("./pipeline")
-	with open('model.pkl', 'wb') as f:
-		pickle.dump(kmeans_model, f)
+	#with open('model.pkl', 'wb') as f:
+	#	pickle.dump(kmeans_model, f)
 
 
 # Main entry point for all streaming functionality
