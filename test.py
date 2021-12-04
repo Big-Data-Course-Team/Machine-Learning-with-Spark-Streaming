@@ -17,10 +17,14 @@ from pyspark.streaming import StreamingContext
 from pyspark.sql import SQLContext, Row, SparkSession
 from pyspark.sql.types import *
 
-from preprocessing.preprocess import preprocessing
-from classification_models.pipeline_sparkml import custom_model_pipeline, get_model
+from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
+from sklearn.cluster import MiniBatchKMeans
+from sklearn.linear_model import SGDClassifier
+
+from preprocessing.preprocess import *
+from classification_models.pipeline_sparkml import *
+from classification_models.logistic_regression import *
 from clustering_models.kmeans_clustering import clustering
-from sklearn.feature_extraction.text import CountVectorizer
 
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 #from spark_sklearn import linear_model
@@ -64,6 +68,25 @@ spark.sparkContext.setLogLevel("ERROR")
 ssc = StreamingContext(sc, 5)
 
 '''
+ ---------------------------- Model definitions -------------------------------------
+'''
+
+# Define CountVectorizer
+CountVectorizer.partial_fit = partial_fit
+vectorizer = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
+
+# Define HashVectorizer - TODO: figure out how to get HV to work
+#vectorizer = HashingVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
+
+# Define, initialize BatchKMeans Model
+num_clusters = 2
+kmeans_model = MiniBatchKMeans(n_clusters=num_clusters, init='k-means++', n_init=1, 
+							   init_size=1000, batch_size=1000, verbose=False, max_iter=1000)
+
+
+lr_model = SGDClassifier(loss='log')
+
+'''
  ---------------------------- Processing -------------------------------------------
 '''
 # Process each stream - needs to run ML models
@@ -83,19 +106,17 @@ def process(rdd):
 	# Create a DataFrame with each stream	
 	df = spark.createDataFrame((Row(**d) for d in dicts), schema)
 	
-	# Perform preprocessing
-	df = preprocessing(df)
-	
-	# ==================Test preprocessing==============
-	print('After preprocessing:\n')
+	# ==================Data Cleaning + Test============
+	df = df_preprocessing(df)
+	print('\nAfter cleaning:\n')
 	df.show()
 	# ==================================================
 	
-	df=custom_model_pipeline(df, spark)
-	
-	print("After Pipeline")
+	# ==================Preprocessing + Test============
+	df = transformers_pipeline(df, spark, vectorizer)
+	print("\nAfter Preprocessing:\n")
 	df.show()
-	
+	# ==================================================
 	
 	
 	input_str="tokens_noStop"	

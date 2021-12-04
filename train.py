@@ -139,8 +139,8 @@ def process(rdd):
 	
 	# Save the model to a file
 	#pipeline.write().overwrite().save("./pipeline")
-	#with open('model.pkl', 'wb') as f:
-	#	pickle.dump(model, f)
+	with open('model.pkl', 'wb') as f:
+		pickle.dump(kmeans_model, f)
 
 
 # Main entry point for all streaming functionality
