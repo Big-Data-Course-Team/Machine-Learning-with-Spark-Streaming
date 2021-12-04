@@ -25,8 +25,8 @@ from sklearn.naive_bayes import MultinomialNB
 from preprocessing.preprocess import *
 from classification_models.pipeline_sparkml import *
 from classification_models.logistic_regression import *
+from classification_models.multinomial_nb import *
 from clustering_models.kmeans_clustering import clustering
-
 
 '''
  ---------------------------- Constant definitions ----------------------------------
@@ -83,7 +83,8 @@ multi_nb_model = MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
 # Process each stream - needs to run ML models
 def process(rdd):
 	
-	global schema, spark, vectorizer, kmeans_model, lr_model
+	global schema, spark, vectorizer, \
+		   kmeans_model, lr_model, multi_nb_model
 	
 	# ==================Dataframe Creation==============
 	
