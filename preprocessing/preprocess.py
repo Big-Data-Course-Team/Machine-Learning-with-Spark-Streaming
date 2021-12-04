@@ -63,10 +63,8 @@ def transformers_pipeline(df, spark, pca, minmaxscaler, vectorizer, inputCols = 
 	pca.partial_fit(pca_X_train, labels_arr)
 	pca_transformed = pca.transform(pca_X_train)
 	
-	minmaxscaler.partial_fit(output_arr)
-	minmax_pca = minmaxscaler.transform(output_arr)
-	print('Scaler:', minmaxscaler.data_min_, minmaxscaler.data_max_)
-	
+	minmaxscaler.partial_fit(pca_transformed)
+	minmax_pca = minmaxscaler.transform(pca_transformed)	
 #	minmax_hash = minmaxscaler.transform(pca_transformed)
 	
 	output_col = list(map(lambda x: [x[0], x[1].tolist(), x[2].tolist(), x[3].tolist()], \
@@ -75,7 +73,6 @@ def transformers_pipeline(df, spark, pca, minmaxscaler, vectorizer, inputCols = 
 	schema = StructType([
 		StructField('tokens_noStop_copy', ArrayType(StringType())),
 		StructField('hashed_vectors', ArrayType(FloatType())),
-#		StructField('minmax_hashed_vectors', ArrayType(FloatType())),
 		StructField('pca_vectors', ArrayType(FloatType())),
 		StructField('minmax_pca_vectors', ArrayType(FloatType())),
 	])

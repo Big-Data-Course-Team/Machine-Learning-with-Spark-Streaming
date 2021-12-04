@@ -7,7 +7,7 @@ Course: Big Data, Fall 2021
 import numpy as np
 from pyspark.mllib.linalg import Vectors
 
-def lr(df, spark, classifier):
+def LRLearning(df, spark, classifier):
 	"""
 	Perform logistic regression on the dataframe with incremental learning
 	"""

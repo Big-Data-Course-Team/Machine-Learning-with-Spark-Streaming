@@ -22,8 +22,6 @@ def clustering(df, spark, kmeans_model, num_iters):
 	X_train = np.array([row['pca_vectors'] for row in X_train])
 	X_train = np.reshape(X_train, (X_train.shape[0], -1))
 	
-	print(X_train[:10])
-	
 	actual_labels = df.select('sentiment').collect()
 	actual_labels = [row['sentiment'] for row in actual_labels]
 	actual_labels = list(map(int, actual_labels))

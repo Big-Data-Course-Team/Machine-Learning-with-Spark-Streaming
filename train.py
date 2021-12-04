@@ -28,6 +28,7 @@ from sklearn.decomposition import IncrementalPCA
 from preprocessing.preprocess import *
 from classification_models.logistic_regression import *
 from classification_models.multinomial_nb import *
+from classification_models.passive_aggressive import *
 from clustering_models.kmeans_clustering import *
 
 '''
@@ -129,16 +130,16 @@ def process(rdd):
 	# ============================================================
 	
 	# ==================Logistic Regression=======================
-	#lr_model = lr(df, spark, lr_model)
+	lr_model = LRLearning(df, spark, lr_model)
 	# ============================================================
 	
 	# ==================Multinomial Naive Bayes===================
-	#multi_nb_model = \
-	#		  MultiNBLearning(df, spark, multi_nb_model)
+	multi_nb_model = \
+			  MultiNBLearning(df, spark, multi_nb_model)
 	# ============================================================
 
 	# =================Passive Aggressive Model===================
-	#pac_model = PassiveAggressiveClassifier(df, spark, pac_model)
+	pac_model = PALearning(df, spark, pac_model)
 	# ============================================================
 
 	# ===============KMeans Clustering + Test=====================
