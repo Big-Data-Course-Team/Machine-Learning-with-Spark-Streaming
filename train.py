@@ -138,7 +138,7 @@ def process(rdd):
 	# ============================================================
 
 	# =================Passive Aggressive Model===================
-	#pac_model = lr?(df, spark, pac_model)
+	#pac_model = PassiveAggressiveClassifier(df, spark, pac_model)
 	# ============================================================
 
 	# ===============KMeans Clustering + Test=====================
