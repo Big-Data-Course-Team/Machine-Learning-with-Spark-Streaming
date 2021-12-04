@@ -14,16 +14,16 @@ def lr(df, spark, classifier):
 	
 	#trainingData = df.select("pca_vectors", "sentiment").collect()
 	# OR 
-	#trainingData = df.select("hashed_vectors", "sentiment").collect()
+	trainingData = df.select("hashed_vectors", "sentiment").collect()
 	# OR
-	trainingData = df.select("minmax_pca_vectors", "sentiment").collect()
+	#trainingData = df.select("minmax_pca_vectors", "sentiment").collect()
 	
 	
 	#X_train = np.array(list(map(lambda row: row.pca_vectors, trainingData)))
 	# OR 
-	#X_train = np.array(list(map(lambda row: row.hashed_vectors, trainingData)))
+	X_train = np.array(list(map(lambda row: row.hashed_vectors, trainingData)))
 	# OR
-	X_train = np.array(list(map(lambda row: row.minmax_pca_vectors, trainingData)))
+	#X_train = np.array(list(map(lambda row: row.minmax_pca_vectors, trainingData)))
 	
 	
 	y_train = np.array(list(map(lambda row: row.sentiment, trainingData)), dtype='int64')
