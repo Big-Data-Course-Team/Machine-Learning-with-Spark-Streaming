@@ -130,8 +130,8 @@ def process(rdd):
 	
 	act=list()
 	for i in actual:
-		if i==4:
-			i=1
+		#if i==4:
+		#	i=1
 		act.append(i)
 	correct=0
 	for i in range(len(act)):

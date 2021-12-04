@@ -124,8 +124,16 @@ def process(rdd):
 	multi_nb_model = \
 			  MultiNBLearning(df, spark, multi_nb_model)
 	# ==================================================
-	# ==================KMeans Clustering + Test========
-	kmeans_model = clustering(df, spark, kmeans_model)
+
+	# ===============KMeans Clustering + Test===========
+	with open('./num_iters', "r") as ni:
+		num_iters = int(ni.read())
+	num_iters+=1
+	
+	kmeans_model = clustering(df, spark, kmeans_model, num_iters)
+	
+	with open('./num_iters', "w") as ni:
+		ni.write(str(num_iters))
 	# ==================================================
 	
 	# Save the model to a file
@@ -144,6 +152,9 @@ if __name__ == '__main__':
 	# TODO: check if split is necessary
 	json_str = lines.flatMap(lambda x: x.split('\n'))
 	
+	file=open("./num_iters","w")
+	file.write("0")
+	file.close()
 	
 	# Process each RDD
 	lines.foreachRDD(process)
