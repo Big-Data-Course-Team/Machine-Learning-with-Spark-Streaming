@@ -21,11 +21,19 @@ import plotext as plx
 
 def clustering(df, spark, kmeans_model, num_iters):
 
+	trainingCol = df.select("pca_vectors").collect()
+	# OR
+	#trainingCol = df.select("hashed_vectors").collect()
+	# OR
+	#trainingCol = df.select("minmax_pca_vectors").collect()
+	
 	pca = PCA(2)
-	trainingData = list(map(lambda line: Vectors.dense(line), df.select("count_vectors").collect()))
+	
+	trainingData = list(map(lambda line: Vectors.dense(line), trainingCol))
+	
 	vector = np.vectorize(float)#not required
 	trainingData = np.array(trainingData)
-	trainingData = np.reshape(trainingData,(trainingData.shape[0], -1))
+	trainingData = np.reshape(trainingData, (trainingData.shape[0], -1))
 	trainingData = vector(trainingData)
 	
 	trainingData = pca.fit_transform(trainingData)
@@ -35,18 +43,14 @@ def clustering(df, spark, kmeans_model, num_iters):
 	print("KMeans Cluster Centers:", kmeans_model.cluster_centers_)
 	
 	predictions = kmeans_model.predict(trainingData)
-	#actual = df.select("Sentiment").collect()
-	
-	#print(trainingData[:,0],trainingData[:,1])
 	
 	# TODO: Move plotting to a separate function/file
-	plt.scatter(trainingData[:,0],trainingData[:,1],color = 'red')
+	plt.scatter(trainingData[:, 0], trainingData[:, 1], color = 'red')
+	
 	img_file=open("./Clusters/fig"+str(num_iters), "wb+")
 	plt.savefig(img_file)
 
 	actual= df.select('Sentiment').rdd.map(lambda row : row[0]).collect()
-	
-	
 	actual=[int(i) for i in actual]
 	predictions=[int(i) for i in predictions]
 	

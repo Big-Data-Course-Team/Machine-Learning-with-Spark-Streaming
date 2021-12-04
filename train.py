@@ -26,7 +26,6 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.decomposition import IncrementalPCA
 
 from preprocessing.preprocess import *
-from classification_models.pipeline_sparkml import *
 from classification_models.logistic_regression import *
 from classification_models.multinomial_nb import *
 from clustering_models.kmeans_clustering import *
@@ -139,7 +138,7 @@ def process(rdd):
 	# ============================================================
 
 	# =================Passive Aggressive Model===================
-	pac_model = lr(df, spark, pac_model)
+	#pac_model = lr?(df, spark, pac_model)
 	# ============================================================
 
 	# ===============KMeans Clustering + Test=====================
