@@ -5,23 +5,35 @@
 ├── classification_models
 │   ├── logistic_regression.py
 │   ├── multinomial_nb.py
+│   ├── passive_aggressive.py
 ├── clustering_models
 │   ├── kmeans_clustering.py
-├── Clusters
-│   └── fig1
-├── preprocessing
-│   ├── preprocess.py
-├── test.py
-└── train.py
-├── stream.py
-├── sentiment
-│   ├── test.csv
-│   └── train.csv
+├── cluster_plots
+│   ├── Batch_1
+│   ├── Batch_10
+│   ├── Batch_11
+│   ├── Batch_12
+│   ├── Batch_13
+│   ├── Batch_14
+│   ├── Batch_15
+│   ├── Batch_2
+│   ├── Batch_3
+│   ├── Batch_4
+│   ├── Batch_5
+│   ├── Batch_6
+│   ├── Batch_7
+│   ├── Batch_8
+│   └── Batch_9
+├── LICENSE
 ├── model.pkl
 ├── num_iters
-├── requirements.txt
+├── preprocessing
+│   ├── preprocess.py
 ├── README.md
-├── LICENSE
+├── requirements.txt
+├── test.py
+└── train.py
+
 ```
 ### About the Dataset
 1. Two CSV files each for training (with 1520k records) and testing (with 80k records).
