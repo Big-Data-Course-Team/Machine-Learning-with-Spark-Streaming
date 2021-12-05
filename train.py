@@ -12,18 +12,18 @@ import pickle
 import json
 import importlib
 
+from pyspark.sql.types import *
 from pyspark import SparkContext, SparkConf
 from pyspark.streaming import StreamingContext
 from pyspark.sql import SQLContext, Row, SparkSession
-from pyspark.sql.types import *
 
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.decomposition import IncrementalPCA, LatentDirichletAllocation
+
 from sklearn.linear_model import SGDClassifier, PassiveAggressiveClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.cluster import MiniBatchKMeans, Birch
-
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.decomposition import IncrementalPCA, LatentDirichletAllocation
 
 from preprocessing.preprocess import *
 from classification_models.logistic_regression import *
@@ -31,9 +31,6 @@ from classification_models.multinomial_nb import *
 from classification_models.passive_aggressive import *
 from clustering_models.kmeans_clustering import *
 from clustering_models.birch_clustering import *
-
-import warnings
-warnings.filterwarnings("ignore")
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -72,7 +69,6 @@ ssc = StreamingContext(sc, 5)
  ---------------------------- Model definitions -------------------------------------
 '''
 # Define the Incremental PCA
-<<<<<<< HEAD
 pca = IncrementalPCA(n_components=2)
 
 # Define the online learning LatentDirichletAllocation
@@ -82,10 +78,6 @@ lda = LatentDirichletAllocation(n_components=5,
 								learning_offset=50.0,
 								random_state=0)
                                       
-=======
-#pca = IncrementalPCA(n_components=30)
-
->>>>>>> 67e0c886476fee13407d8602dad015aebb7f095e
 # Define MinMax Scaler
 minmaxscaler = MinMaxScaler()
 
@@ -104,17 +96,38 @@ hv = HashingVectorizer(n_features=2**16,
 					   stop_words='english', 
 					   ngram_range=(1,2))
 
-# Define LR Model
-lr_model = SGDClassifier(loss='log')
+# Define LR Models
+''' Parameters
+- loss: Loss function. (‘hinge’, ‘log’, ‘modified_huber’, ‘squared_hinge’, ‘perceptron')
+- penalty: regularization term, defaults to l2.
+'''
+lr_model_1 = SGDClassifier(loss='log')
+lr_model_2 = SGDClassifier(loss='hinge')
+lr_model_3 = SGDClassifier(loss='perceptron')
 
-# Define NB Model
-multi_nb_model = MultinomialNB(alpha=1.0, 
-							   class_prior=None, 
-							   fit_prior=True)
+# Define NB Models
+''' Parameters
+- alpha: Additive (Laplace/Lidstone) smoothing parameter (0 for no smoothing)
+- fit_prior: Whether to learn class prior probabilities or not.
+- class_prior: Prior probabilities of the classes. 
+'''
+multi_nb_model_1 = MultinomialNB(alpha=1.0, 
+							     class_prior=None, 
+							     fit_prior=True)
+multi_nb_model_2 = MultinomialNB(alpha=0.5, 
+							     class_prior=None, 
+							     fit_prior=True)
+multi_nb_model_3 = MultinomialNB(alpha=0.7, 
+							     class_prior=None, 
+							     fit_prior=True)
 
-# Define PA Model
-pac_model = PassiveAggressiveClassifier(C = 0.5, 
-										random_state = 5)
+# Define PA Models
+''' Parameters:
+- C: Maximum step size (regularization). Defaults to 1.0.
+'''
+pac_model_1 = PassiveAggressiveClassifier(C = 0.2)
+pac_model_2 = PassiveAggressiveClassifier(C = 0.5)
+pac_model_3 = PassiveAggressiveClassifier(C = 1.0)
 
 # Define Birch Model
 brc_model = Birch(n_clusters=2)
@@ -135,49 +148,33 @@ def process(rdd):
 	
 	global schema, spark, \
 		   pca, lda, minmaxscaler, cv, hv, \
-		   lr_model, multi_nb_model, pac_model, \
+		   lr_model_1, lr_model_2, lr_model_3, \
+		   multi_nb_model_1, multi_nb_model_2, multi_nb_model_3, \
+		   pac_model_1, pac_model_2, pac_model_3, \
 		   kmeans_model, brc_model
 	
-	# ==================Dataframe Creation=======================
+	# ==================Dataframe Creation===================================================
 	
 	# Collect all records
 	records = rdd.collect()
 	
 	# List of dicts
-<<<<<<< HEAD
-	dicts = [i for j in records 
-					 for i in list(json.loads(j).values())]
-	print(dicts)
-	if len(dicts) == 0:
-		return
-
-=======
 	dicts = [i for j in records for i in list(json.loads(j).values())]
 	
 	if len(dicts) == 0:
 		return
-	
-	
-	
->>>>>>> 67e0c886476fee13407d8602dad015aebb7f095e
+
 	# Create a DataFrame with each stream	
 	df = spark.createDataFrame((Row(**d) for d in dicts), schema)
-	# ============================================================
+	# ========================================================================================
 	
-	# ==================Data Cleaning + Test======================
+	# ==================Data Cleaning + Test==================================================
 	df = df_preprocessing(df)
 	print('\nAfter cleaning:\n')
 	df.show()
-	# ============================================================
+	# ========================================================================================
 	
-	
-	
-	# ==================Preprocessing + Test======================
-<<<<<<< HEAD
-	df = transformers_pipeline(df, spark, pca, lda, minmaxscaler, hv)
-	print("\nAfter Preprocessing:\n")
-	df.show()
-=======
+	# ==================Preprocessing + Test==================================================
 	
 	tokens_sentiments = df.select('tokens_noStop', 'sentiment').collect()
 	
@@ -187,40 +184,54 @@ def process(rdd):
 	
 	sparse_vectors = hv.transform(tokens)
 	
-	#print(sentiments)
-	#print(sparse_vectors)
-	
-	print("\nAfter Vectorizing:\n")
-	
->>>>>>> 67e0c886476fee13407d8602dad015aebb7f095e
-	# ============================================================
-'''
-	# ==================Logistic Regression=======================
-	lr_model = LRLearning(sparse_vectors, sentiments, spark, lr_model)
-	
-	with open('./trained_models/lr_model.pkl', 'wb') as f:
-		pickle.dump(lr_model, f)
-	
-	# ============================================================
-	
-	# ==================Multinomial Naive Bayes===================
-	multi_nb_model = \
-			  MultiNBLearning(sparse_vectors, sentiments, spark, multi_nb_model)
-			  
-	with open('./trained_models/multi_nb_model.pkl', 'wb') as f:
-		pickle.dump(multi_nb_model, f)		  
-	
-	# ============================================================
+	# ========================================================================================
 
-	# =================Passive Aggressive Model===================
-	pac_model = PALearning(sparse_vectors, sentiments, spark, pac_model)
+	# ==================Logistic Regression===================================================
+	lr_model_1 = LRLearning(sparse_vectors, sentiments, spark, lr_model_1)
+	with open('./trained_models/lr_model_1.pkl', 'wb') as f:
+		pickle.dump(lr_model_1, f)
+		
+	lr_model_2 = LRLearning(sparse_vectors, sentiments, spark, lr_model_2)
+	with open('./trained_models/lr_model_2.pkl', 'wb') as f:
+		pickle.dump(lr_model_2, f)
+		
+	lr_model_3 = LRLearning(sparse_vectors, sentiments, spark, lr_model_3)	
+	with open('./trained_models/lr_model_3.pkl', 'wb') as f:
+		pickle.dump(lr_model_3, f)
 	
-	with open('./trained_models/pac_model.pkl', 'wb') as f:
-		pickle.dump(pac_model, f)
+	# ========================================================================================
 	
-	# ============================================================
+	# ==================Multinomial Naive Bayes===============================================
+	multi_nb_model_1 = MultiNBLearning(sparse_vectors, sentiments, spark, multi_nb_model_1)
+	with open('./trained_models/multi_nb_model_1.pkl', 'wb') as f:
+		pickle.dump(multi_nb_model_1, f) 
+		
+	multi_nb_model_2 = MultiNBLearning(sparse_vectors, sentiments, spark, multi_nb_model_2)
+	with open('./trained_models/multi_nb_model_1.pkl', 'wb') as f:
+		pickle.dump(multi_nb_model_2, f) 
 
-	# ===============KMeans Clustering + Test=====================
+	multi_nb_model_3 = MultiNBLearning(sparse_vectors, sentiments, spark, multi_nb_model_3)
+	with open('./trained_models/multi_nb_model_3.pkl', 'wb') as f:
+		pickle.dump(multi_nb_model_3, f) 
+		
+	# ========================================================================================
+
+	# =================Passive Aggressive Model===============================================
+	pac_model_1 = PALearning(sparse_vectors, sentiments, spark, pac_model_1)
+	with open('./trained_models/pac_model_1.pkl', 'wb') as f:
+		pickle.dump(pac_model_1, f)
+
+	pac_model_2 = PALearning(sparse_vectors, sentiments, spark, pac_model_2)
+	with open('./trained_models/pac_model_2.pkl', 'wb') as f:
+		pickle.dump(pac_model_2, f)
+
+	pac_model_3 = PALearning(sparse_vectors, sentiments, spark, pac_model_3)
+	with open('./trained_models/pac_model_3.pkl', 'wb') as f:
+		pickle.dump(pac_model_3, f)
+		
+	# ========================================================================================
+
+	# ===============KMeans Clustering + Test=================================================
 	with open('./kmeans_iteration', "r") as ni:
 		k_num_iters = int(ni.read())
 	
@@ -234,14 +245,24 @@ def process(rdd):
 		
 	with open('./trained_models/kmeans_model.pkl', 'wb') as f:
 		pickle.dump(kmeans_model, f)
-	# ============================================================
+	# ========================================================================================
 
+'''
+	# ===============Birch Clustering + Test==================================================
+	with open('./birch_iteration', "r") as ni:
+		b_num_iters = int(ni.read())
+	
+	b_num_iters += 1
 
-	# ===============Birch Clustering + Test======================
-	#with open('./birch_iteration', "r") as ni:
-		#b_num_iters = int(ni.read())
-
-	# ============================================================
+	brc_model = \
+			birch_clustering(sparse_vectors, sentiments, spark, brc_model, b_num_iters)
+	
+	with open('./birch_iteration', "w") as ni:
+		ni.write(str(b_num_iters))
+		
+	with open('./trained_models/birch_model.pkl', 'wb') as f:
+		pickle.dump(brc_model, f)
+	# ========================================================================================
 '''
 
 # Main entry point for all streaming functionality
@@ -257,7 +278,6 @@ if __name__ == '__main__':
 	# Each record in 'lines' is a line of text
 	lines = ssc.socketTextStream(TCP_IP, TCP_PORT)
 
-	# TODO: check if split is necessary
 	json_str = lines.flatMap(lambda x: x.split('\n'))
 	
 	with open('./birch_iteration', "w") as ni:

@@ -19,6 +19,7 @@ def LRLearning(X, y, spark, classifier):
 	accuracy = np.count_nonzero(np.array(predictions) == y)/y.shape[0]
 	
 	print("Accuracy of LR:", accuracy)
+	
 	with open('./model_accuracies/lr.txt', "a") as ma:
 		ma.write(str(accuracy)+'\n')
 	
