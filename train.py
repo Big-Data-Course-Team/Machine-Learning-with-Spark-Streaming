@@ -187,45 +187,45 @@ def process(rdd):
 	# ========================================================================================
 
 	# ==================Logistic Regression===================================================
-	lr_model_1 = LRLearning(sparse_vectors, sentiments, spark, lr_model_1)
+	lr_model_1 = LRLearning(sparse_vectors, sentiments, spark, lr_model_1, 1)
 	with open('./trained_models/lr_model_1.pkl', 'wb') as f:
 		pickle.dump(lr_model_1, f)
 		
-	lr_model_2 = LRLearning(sparse_vectors, sentiments, spark, lr_model_2)
+	lr_model_2 = LRLearning(sparse_vectors, sentiments, spark, lr_model_2, 2)
 	with open('./trained_models/lr_model_2.pkl', 'wb') as f:
 		pickle.dump(lr_model_2, f)
 		
-	lr_model_3 = LRLearning(sparse_vectors, sentiments, spark, lr_model_3)	
+	lr_model_3 = LRLearning(sparse_vectors, sentiments, spark, lr_model_3, 3)	
 	with open('./trained_models/lr_model_3.pkl', 'wb') as f:
 		pickle.dump(lr_model_3, f)
 	
 	# ========================================================================================
 	
 	# ==================Multinomial Naive Bayes===============================================
-	multi_nb_model_1 = MultiNBLearning(sparse_vectors, sentiments, spark, multi_nb_model_1)
+	multi_nb_model_1 = MultiNBLearning(sparse_vectors, sentiments, spark, multi_nb_model_1, 1)
 	with open('./trained_models/multi_nb_model_1.pkl', 'wb') as f:
 		pickle.dump(multi_nb_model_1, f) 
 		
-	multi_nb_model_2 = MultiNBLearning(sparse_vectors, sentiments, spark, multi_nb_model_2)
-	with open('./trained_models/multi_nb_model_1.pkl', 'wb') as f:
+	multi_nb_model_2 = MultiNBLearning(sparse_vectors, sentiments, spark, multi_nb_model_2, 2)
+	with open('./trained_models/multi_nb_model_2.pkl', 'wb') as f:
 		pickle.dump(multi_nb_model_2, f) 
 
-	multi_nb_model_3 = MultiNBLearning(sparse_vectors, sentiments, spark, multi_nb_model_3)
+	multi_nb_model_3 = MultiNBLearning(sparse_vectors, sentiments, spark, multi_nb_model_3, 3)
 	with open('./trained_models/multi_nb_model_3.pkl', 'wb') as f:
 		pickle.dump(multi_nb_model_3, f) 
 		
 	# ========================================================================================
 
 	# =================Passive Aggressive Model===============================================
-	pac_model_1 = PALearning(sparse_vectors, sentiments, spark, pac_model_1)
+	pac_model_1 = PALearning(sparse_vectors, sentiments, spark, pac_model_1, 1)
 	with open('./trained_models/pac_model_1.pkl', 'wb') as f:
 		pickle.dump(pac_model_1, f)
 
-	pac_model_2 = PALearning(sparse_vectors, sentiments, spark, pac_model_2)
+	pac_model_2 = PALearning(sparse_vectors, sentiments, spark, pac_model_2, 2)
 	with open('./trained_models/pac_model_2.pkl', 'wb') as f:
 		pickle.dump(pac_model_2, f)
 
-	pac_model_3 = PALearning(sparse_vectors, sentiments, spark, pac_model_3)
+	pac_model_3 = PALearning(sparse_vectors, sentiments, spark, pac_model_3, 3)
 	with open('./trained_models/pac_model_3.pkl', 'wb') as f:
 		pickle.dump(pac_model_3, f)
 		

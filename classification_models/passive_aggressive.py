@@ -7,7 +7,7 @@ Course: Big Data, Fall 2021
 import numpy as np
 from pyspark.mllib.linalg import Vectors
 
-def PALearning(X, y, spark, classifier):
+def PALearning(X, y, spark, classifier, model_version):
 	"""
 	Perform passive aggressive classification on the dataframe with incremental learning
 	"""
@@ -20,7 +20,7 @@ def PALearning(X, y, spark, classifier):
 	accuracy = np.count_nonzero(np.array(predictions) == y)/y.shape[0]
 	
 	print("Accuracy of PAC:", accuracy)
-	with open('./model_accuracies/pac.txt', "a") as ma:
+	with open(f'./model_accuracies/pac_{model_version}.txt', "a") as ma:
 		ma.write(str(accuracy)+'\n')
 	
 	

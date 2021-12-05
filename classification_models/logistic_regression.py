@@ -7,7 +7,7 @@ Course: Big Data, Fall 2021
 import numpy as np
 from pyspark.mllib.linalg import Vectors
 
-def LRLearning(X, y, spark, classifier):
+def LRLearning(X, y, spark, classifier, model_version):
 	"""
 	Perform logistic regression on the dataframe with incremental learning
 	"""
@@ -20,7 +20,7 @@ def LRLearning(X, y, spark, classifier):
 	
 	print("Accuracy of LR:", accuracy)
 	
-	with open('./model_accuracies/lr.txt', "a") as ma:
+	with open(f'./model_accuracies/lr_{model_version}.txt', "a") as ma:
 		ma.write(str(accuracy)+'\n')
 	
 	return classifier
