@@ -8,7 +8,7 @@ import numpy as np
 
 from pyspark.mllib.linalg import Vectors
 
-def MultiNBLearning(X, y, spark, classifier):
+def MultiNBLearning(X, y, spark, classifier, model_version):
 	"""
 	Perform online learning of a Multinomial Naive Bayes model with batches of data
 	"""
@@ -21,7 +21,7 @@ def MultiNBLearning(X, y, spark, classifier):
 	accuracy = np.count_nonzero(np.array(predictions) == y) / y.shape[0]
 
 	print("Accuracy of NB:", accuracy)
-	with open('./model_accuracies/mnb.txt', "a") as ma:
+	with open(f'./model_accuracies/mnb_{model_version}.txt', "a") as ma:
 		ma.write(str(accuracy)+'\n')
 	
 	return classifier
