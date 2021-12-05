@@ -28,7 +28,7 @@ def MultiNBLearning(df, spark, classifier):
 
 	y_train = np.array(list(map(lambda row: row.sentiment, trainingData)), dtype='int64')
 
-	# Fit the LR classifier
+	# Fit the MNB classifier
 	classifier.partial_fit(X_train, y_train, classes=np.unique(y_train))
 
 	predictions = classifier.predict(X_train)

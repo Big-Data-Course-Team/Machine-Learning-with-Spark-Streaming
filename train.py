@@ -131,15 +131,27 @@ def process(rdd):
 	
 	# ==================Logistic Regression=======================
 	lr_model = LRLearning(df, spark, lr_model)
+	
+	with open('lr_model.pkl', 'wb') as f:
+		pickle.dump(lr_model, f)
+	
 	# ============================================================
 	
 	# ==================Multinomial Naive Bayes===================
 	multi_nb_model = \
 			  MultiNBLearning(df, spark, multi_nb_model)
+			  
+	with open('multi_nb_model.pkl', 'wb') as f:
+		pickle.dump(multi_nb_model, f)		  
+	
 	# ============================================================
 
 	# =================Passive Aggressive Model===================
 	pac_model = PALearning(df, spark, pac_model)
+	
+	with open('pac_model.pkl', 'wb') as f:
+		pickle.dump(pac_model, f)
+	
 	# ============================================================
 
 	# ===============KMeans Clustering + Test=====================
@@ -153,12 +165,13 @@ def process(rdd):
 	
 	with open('./num_iters', "w") as ni:
 		ni.write(str(num_iters))
+		
+	with open('kmeans_model.pkl', 'wb') as f:
+		pickle.dump(kmeans_model, f)
 	# ============================================================
 	
 	# Save the model to a file
 	#pipeline.write().overwrite().save("./pipeline")
-	#with open('model.pkl', 'wb') as f:
-	#	pickle.dump(kmeans_model, f)
 
 
 # Main entry point for all streaming functionality
