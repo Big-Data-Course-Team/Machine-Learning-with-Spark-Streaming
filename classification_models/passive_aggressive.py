@@ -20,5 +20,8 @@ def PALearning(X, y, spark, classifier):
 	accuracy = np.count_nonzero(np.array(predictions) == y)/y.shape[0]
 	
 	print("Accuracy of PAC:", accuracy)
+	with open('./model_accuracies/pac.txt', "a") as ma:
+		ma.write(str(accuracy)+'\n')
+	
 	
 	return classifier
