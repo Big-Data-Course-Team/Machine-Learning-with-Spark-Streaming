@@ -96,7 +96,10 @@ hv = HashingVectorizer(n_features=2**16,
 '''
  ---------------------------- Processing -------------------------------------------
 '''
+num_iters = 0
+
 def plot_roc_curve(fper, tper, model):  
+	global num_iters
 	plt.plot(fper, tper, color='orange', label='ROC')
 	plt.plot([0, 1], [0, 1], color='darkblue', linestyle='--')
 	plt.xlabel('False Positive Rate')
@@ -104,7 +107,8 @@ def plot_roc_curve(fper, tper, model):
 	plt.title('Receiver Operating Characteristic (ROC) Curve')
 	plt.legend()
 
-	img_file = open("./roc_plots" + model + "_" + str(num_iters), "wb+")
+	img_file = open("./roc_curves" + model + "_" + str(num_iters), "wb+")
+	num_iters += 1
 	plt.savefig(img_file)
 
 # Process each stream - needs to run ML models
