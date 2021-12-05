@@ -138,11 +138,11 @@ def process(rdd):
 	
 	tokens_sentiments = df.select('tokens_noStop', 'sentiment').collect()
 	
-	sentiments = np.array([int(row['sentiment']) for row in tokens_sentiments])
+	y_test = np.array([int(row['sentiment']) for row in tokens_sentiments])
 	
 	tokens = [str(row['tokens_noStop']) for row in tokens_sentiments]
 	
-	sparse_vectors = hv.transform(tokens)
+	X_test = hv.transform(tokens)
 
 	# ============================================================
 
@@ -158,7 +158,7 @@ def process(rdd):
 		
 	pred_lr_1 = lr_model_1.predict(X_test)
 	
-	accuracy_lr_1 = np.count_nonzero(np.array(predictions_lr) == y_test)/y_test.shape[0]	
+	accuracy_lr_1 = np.count_nonzero(np.array(pred_lr_1) == y_test)/y_test.shape[0]	
 	print("Accuracy of LR 1:", accuracy_lr_1)
 	with open('./test_eval_metrics/lr_1.txt', "a") as ma:
 		ma.write(str(accuracy_lr_1)+'\n')
@@ -172,7 +172,7 @@ def process(rdd):
 		
 	pred_lr_2 = lr_model_2.predict(X_test)
 	
-	accuracy_lr_2 = np.count_nonzero(np.array(predictions_lr) == y_test)/y_test.shape[0]	
+	accuracy_lr_2 = np.count_nonzero(np.array(pred_lr_2) == y_test)/y_test.shape[0]	
 	print("Accuracy of LR 2:", accuracy_lr_2)
 	with open('./test_eval_metrics/lr_2.txt', "a") as ma:
 		ma.write(str(accuracy_lr_2)+'\n')
@@ -186,7 +186,7 @@ def process(rdd):
 		
 	pred_lr_3 = lr_model_3.predict(X_test)
 	
-	accuracy_lr_3 = np.count_nonzero(np.array(predictions_lr) == y_test)/y_test.shape[0]	
+	accuracy_lr_3 = np.count_nonzero(np.array(pred_lr_3) == y_test)/y_test.shape[0]	
 	print("Accuracy of LR 3:", accuracy_lr_3)
 	with open('./test_eval_metrics/lr_1.txt', "a") as ma:
 		ma.write(str(accuracy_lr_3)+'\n')
@@ -249,7 +249,7 @@ def process(rdd):
 		pac_model_1 = pickle.load(f)
 		
 	pred_pac_1 = pac_model_1.predict(X_test)	
-	accuracy_pac_1 = np.count_nonzero(np.array(predictions_pac) == y_test) / y_test.shape[0]	
+	accuracy_pac_1 = np.count_nonzero(np.array(pred_pac_1) == y_test) / y_test.shape[0]	
 	print("Accuracy of PAC 1:", accuracy_pac_1)
 	
 	with open('./test_eval_metrics/pac_1.txt', "a") as ma:
@@ -260,7 +260,7 @@ def process(rdd):
 		pac_model_2 = pickle.load(f)
 		
 	pred_pac_2 = pac_model_2.predict(X_test)	
-	accuracy_pac_2 = np.count_nonzero(np.array(predictions_pac) == y_test) / y_test.shape[0]	
+	accuracy_pac_2 = np.count_nonzero(np.array(pred_pac_2) == y_test) / y_test.shape[0]	
 	print("Accuracy of PAC 2:", accuracy_pac_2)
 	
 	with open('./test_eval_metrics/pac_2.txt', "a") as ma:
@@ -271,7 +271,7 @@ def process(rdd):
 		pac_model_3 = pickle.load(f)
 		
 	pred_pac_3 = pac_model_3.predict(X_test)	
-	accuracy_pac_3 = np.count_nonzero(np.array(predictions_pac) == y_test) / y_test.shape[0]	
+	accuracy_pac_3 = np.count_nonzero(np.array(pred_pac_3) == y_test) / y_test.shape[0]	
 	print("Accuracy of PAC 3:", accuracy_pac_3)
 	
 	with open('./test_eval_metrics/pac_3.txt', "a") as ma:
