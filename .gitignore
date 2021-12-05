@@ -3,3 +3,12 @@ sentiment/*
 output.txt
 stream.py
 trained_models/*
+
+model_accuracies/*
+trained_models/*
+kmeans_iteration
+birch_iteration
+cluster_plots/*
+roc_curves/*
+test_eval_metrics/*
+
