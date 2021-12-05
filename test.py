@@ -163,7 +163,7 @@ def process(rdd):
 	with open('./test_eval_metrics/lr_1.txt', "a") as ma:
 		ma.write(str(accuracy_lr_1)+'\n')
 
-	fper, tper, _ = roc_curve(sentiment, pred_lr_1, pos_label=4) 
+	fper, tper, _ = roc_curve(y_test, pred_lr_1, pos_label=4) 
 	plot_roc_curve(fper, tper, 'lr_model_1')
 
 	# Model 2
@@ -177,7 +177,7 @@ def process(rdd):
 	with open('./test_eval_metrics/lr_2.txt', "a") as ma:
 		ma.write(str(accuracy_lr_2)+'\n')
 
-	fper, tper, _ = roc_curve(sentiment, pred_lr_2, pos_label=4) 
+	fper, tper, _ = roc_curve(y_test, pred_lr_2, pos_label=4) 
 	plot_roc_curve(fper, tper, 'lr_model_2')
 
 	# Model 3
@@ -191,7 +191,7 @@ def process(rdd):
 	with open('./test_eval_metrics/lr_1.txt', "a") as ma:
 		ma.write(str(accuracy_lr_3)+'\n')
 
-	fper, tper, _ = roc_curve(sentiment, pred_lr_3, pos_label=4) 
+	fper, tper, _ = roc_curve(y_test, pred_lr_3, pos_label=4) 
 	plot_roc_curve(fper, tper, 'lr_model_3')
 
 	# ==========================================================================================
@@ -209,7 +209,7 @@ def process(rdd):
 	with open('./test_eval_metrics/mnb_1.txt', "a") as ma:
 		ma.write(str(accuracy_mnb_1)+'\n')
 	
-	fper, tper, _ = roc_curve(sentiment, pred_mnb_1, pos_label=4) 
+	fper, tper, _ = roc_curve(y_test, pred_mnb_1, pos_label=4) 
 	plot_roc_curve(fper, tper, 'multi_nb_model_1')
 	
 	# Model 2
@@ -223,7 +223,7 @@ def process(rdd):
 	with open('./test_eval_metrics/mnb_2.txt', "a") as ma:
 		ma.write(str(accuracy_mnb_2)+'\n')
 
-	fper, tper, _ = roc_curve(sentiment, pred_mnb_2, pos_label=4) 
+	fper, tper, _ = roc_curve(y_test, pred_mnb_2, pos_label=4) 
 	plot_roc_curve(fper, tper, 'multi_nb_model_2')
 	
 	# Model 3
@@ -237,7 +237,7 @@ def process(rdd):
 	with open('./test_eval_metrics/mnb_3.txt', "a") as ma:
 		ma.write(str(accuracy_mnb_3)+'\n')
 
-	fper, tper, _ = roc_curve(sentiment, pred_mnb_3, pos_label=4) 
+	fper, tper, _ = roc_curve(y_test, pred_mnb_3, pos_label=4) 
 	plot_roc_curve(fper, tper, 'multi_nb_model_3')
 	
 	# ============================================================
