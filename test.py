@@ -20,7 +20,7 @@ from pyspark.sql import SQLContext, Row, SparkSession
 from sklearn.metrics import accuracy_score, f1_score, precision_score, classification_report, roc_curve
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.decomposition import IncrementalPCA, LatentDirichletAllocation
+from sklearn.decomposition import IncrementalPCA, LatentDirichletAllocation, PCA, TruncatedSVD
 
 from preprocessing.preprocess import *
 from classification_models.logistic_regression import *
@@ -289,12 +289,7 @@ def process(rdd):
 	# ==================Testing KMeans Model=======================
 	with open('./trained_models/kmeans_model.pkl', 'rb') as f:
 		kmeans_model = pickle.load(f)
-		
-	X_test = df.select("hashed_vectors").collect()
-	
-	X_test = np.array([row["hashed_vectors"] for row in X_test])
-	X_test = np.reshape(X_test, (X_test.shape[0], -1))
-		
+
 	predictions_kmeans = kmeans_model.predict(X_test)	
 	
 	preds_1_kmeans = [4 if i == 1 else 0 for i in predictions_kmeans]
