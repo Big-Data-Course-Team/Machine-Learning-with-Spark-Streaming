@@ -31,6 +31,9 @@ from classification_models.multinomial_nb import *
 from classification_models.passive_aggressive import *
 from clustering_models.kmeans_clustering import *
 
+import warnings
+warnings.filterwarnings("ignore")
+
 '''
  ---------------------------- Constant definitions ----------------------------------
 '''
@@ -65,7 +68,7 @@ ssc = StreamingContext(sc, 5)
  ---------------------------- Model definitions -------------------------------------
 '''
 # Define the Incremental PCA
-pca = IncrementalPCA(n_components=2)
+pca = IncrementalPCA(n_components=30)
 
 # Define MinMax Scaler
 minmaxscaler = MinMaxScaler()
