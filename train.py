@@ -132,7 +132,7 @@ def process(rdd):
 	# ==================Logistic Regression=======================
 	lr_model = LRLearning(df, spark, lr_model)
 	
-	with open('lr_model.pkl', 'wb') as f:
+	with open('./models/lr_model.pkl', 'wb') as f:
 		pickle.dump(lr_model, f)
 	
 	# ============================================================
@@ -141,7 +141,7 @@ def process(rdd):
 	multi_nb_model = \
 			  MultiNBLearning(df, spark, multi_nb_model)
 			  
-	with open('multi_nb_model.pkl', 'wb') as f:
+	with open('./models/multi_nb_model.pkl', 'wb') as f:
 		pickle.dump(multi_nb_model, f)		  
 	
 	# ============================================================
@@ -149,7 +149,7 @@ def process(rdd):
 	# =================Passive Aggressive Model===================
 	pac_model = PALearning(df, spark, pac_model)
 	
-	with open('pac_model.pkl', 'wb') as f:
+	with open('./models/pac_model.pkl', 'wb') as f:
 		pickle.dump(pac_model, f)
 	
 	# ============================================================
@@ -166,7 +166,7 @@ def process(rdd):
 	with open('./num_iters', "w") as ni:
 		ni.write(str(num_iters))
 		
-	with open('kmeans_model.pkl', 'wb') as f:
+	with open('./models/kmeans_model.pkl', 'wb') as f:
 		pickle.dump(kmeans_model, f)
 	# ============================================================
 	

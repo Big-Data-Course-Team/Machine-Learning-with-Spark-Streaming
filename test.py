@@ -139,7 +139,7 @@ def process(rdd):
 	'''
 		
 	# ==================Testing Logistic Regression=======================
-	with open('lr_model.pkl', 'rb') as f:
+	with open('./models/lr_model.pkl', 'rb') as f:
 		lr_model = pickle.load(f)
 		
 	predictions_lr = lr_model.predict(X_test)	
@@ -153,7 +153,7 @@ def process(rdd):
 	X_test_mnb = np.array(list(map(lambda row: row.minmax_pca_vectors, testingData_mnb)))
 	y_test_mnb = np.array(list(map(lambda row: row.sentiment, testingData_mnb)), dtype='int64')
 	
-	with open('multi_nb_model.pkl', 'rb') as f:
+	with open('./models/multi_nb_model.pkl', 'rb') as f:
 		multi_nb_model = pickle.load(f)
 		
 	predictions_mnb = multi_nb_model.predict(X_test_mnb)	
@@ -162,7 +162,7 @@ def process(rdd):
 	# ============================================================
 	
 	# ==================Testing Passive Aggressive Model=======================
-	with open('pac_model.pkl', 'rb') as f:
+	with open('./models/pac_model.pkl', 'rb') as f:
 		pac_model = pickle.load(f)
 		
 	predictions_pac = pac_model.predict(X_test)	
@@ -175,7 +175,7 @@ def process(rdd):
 	'''	
 	
 	# ==================Testing KMeans Model=======================
-	with open('kmeans_model.pkl', 'rb') as f:
+	with open('./models/kmeans_model.pkl', 'rb') as f:
 		kmeans_model = pickle.load(f)
 		
 	X_test = df.select('pca_vectors').collect()
