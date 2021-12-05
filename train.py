@@ -35,6 +35,9 @@ from clustering_models.birch_clustering import *
 import warnings
 warnings.filterwarnings("ignore")
 
+import warnings
+warnings.filterwarnings("ignore")
+
 '''
  ---------------------------- Constant definitions ----------------------------------
 '''

@@ -23,14 +23,13 @@ plt.rcParams.update({'figure.figsize':(16, 9), 'figure.dpi':100})
 
 def kmeans_clustering(df, spark, kmeans_model, num_iters):
 	
-	pca = PCA(2)
-	
 	X_train = df.select("hashed_vectors").collect()
 	#X_train = df.select("pca_vectors").collect()
 	
-	
 	X_train = np.array([row["hashed_vectors"] for row in X_train])
 	#X_train = np.array([row["pca_vectors"] for row in X_train])
+
+	pca = PCA(2)
 	
 	X_train = np.reshape(X_train, (X_train.shape[0], -1))
 	
