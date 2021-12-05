@@ -111,20 +111,26 @@ def process(rdd):
 	predictions_lr = lr_model.predict(X_test)	
 	accuracy_lr = np.count_nonzero(np.array(predictions_lr) == y_test)/y_test.shape[0]	
 	print("Accuracy of LR:", accuracy_lr)
+	
+	with open('./test_accuracies/lr.txt', "a") as ma:
+		ma.write(str(accuracy_lr)+'\n')
 	# ============================================================
 	
 	# ==================Testing Multinomial Naive Bayes=======================
 	
-	testingData_mnb = df.select("minmax_pca_vectors", "sentiment").collect()
+	'''testingData_mnb = df.select("minmax_pca_vectors", "sentiment").collect()
 	X_test_mnb = np.array(list(map(lambda row: row.minmax_pca_vectors, testingData_mnb)))
-	y_test_mnb = np.array(list(map(lambda row: row.sentiment, testingData_mnb)), dtype='int64')
+	y_test_mnb = np.array(list(map(lambda row: row.sentiment, testingData_mnb)), dtype='int64')'''
 	
 	with open('./trained_models/multi_nb_model.pkl', 'rb') as f:
 		multi_nb_model = pickle.load(f)
 		
-	predictions_mnb = multi_nb_model.predict(X_test_mnb)	
-	accuracy_mnb = np.count_nonzero(np.array(predictions_mnb) == y_test_mnb)/y_test_mnb.shape[0]	
+	predictions_mnb = multi_nb_model.predict(X_test)	
+	accuracy_mnb = np.count_nonzero(np.array(predictions_mnb) == y_test)/y_test.shape[0]	
 	print("Accuracy of NB:", accuracy_mnb)
+	
+	with open('./test_accuracies/mnb.txt', "a") as ma:
+		ma.write(str(accuracy_mnb)+'\n')
 	# ============================================================
 	
 	# ==================Testing Passive Aggressive Model=======================
@@ -134,6 +140,9 @@ def process(rdd):
 	predictions_pac = pac_model.predict(X_test)	
 	accuracy_pac = np.count_nonzero(np.array(predictions_pac) == y_test)/y_test.shape[0]	
 	print("Accuracy of PAC:", accuracy_pac)
+	
+	with open('./test_accuracies/pac.txt', "a") as ma:
+		ma.write(str(accuracy_pac)+'\n')
 	# ============================================================
 	
 	'''
@@ -158,11 +167,18 @@ def process(rdd):
 	accuracy_2_kmeans = np.count_nonzero(np.array(preds_2_kmeans) == np.array(y_test)) / y_test.shape[0]
 			
 	print('Accuracy of KMeans: ', accuracy_1_kmeans, accuracy_2_kmeans)
+	
+	with open('./test_accuracies/kmeans.txt', "a") as ma:
+		ip=str(accuracy_1_kmeans)+","+str(accuracy_2_kmeans)+'\n'
+		ma.write(ip)
 	# ============================================================
 	
 
 # Main entry point for all streaming functionality
 if __name__ == '__main__':
+
+	if not os.path.isdir('./test_accuracies'):
+		os.mkdir('./test_accuracies')
 
 	# Create a DStream - represents the stream of data received from TCP source/data server
 	# Each record in 'lines' is a line of text

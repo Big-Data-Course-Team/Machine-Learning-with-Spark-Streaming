@@ -38,6 +38,7 @@ def cv_partial_fit(self, batch_data):
 		
 	return self
 
+<<<<<<< HEAD
 def transformers_pipeline(df, spark, pca, lda, minmaxscaler, vectorizer, inputCols = ["tweet", "sentiment"], n=3):
 	
 	# Get a list of rows - each row is a list of strings (tokens without stop words)
@@ -82,6 +83,8 @@ def transformers_pipeline(df, spark, pca, lda, minmaxscaler, vectorizer, inputCo
 	df = df.drop(*['tweet', 'cleaned_tweets', 'tokens', 'tokens_noStop', 'tokens_noStop_copy'])
 '''
 	return df
+=======
+>>>>>>> 67e0c886476fee13407d8602dad015aebb7f095e
 	
 def df_preprocessing(dataframe):
 
