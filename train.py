@@ -132,7 +132,7 @@ def process(rdd):
 	# ==================Logistic Regression=======================
 	lr_model = LRLearning(df, spark, lr_model)
 	
-	with open('lr_model.pkl', 'wb') as f:
+	with open('./trained_models/lr_model.pkl', 'wb') as f:
 		pickle.dump(lr_model, f)
 	
 	# ============================================================
@@ -141,7 +141,7 @@ def process(rdd):
 	multi_nb_model = \
 			  MultiNBLearning(df, spark, multi_nb_model)
 			  
-	with open('multi_nb_model.pkl', 'wb') as f:
+	with open('./trained_models/multi_nb_model.pkl', 'wb') as f:
 		pickle.dump(multi_nb_model, f)		  
 	
 	# ============================================================
@@ -149,7 +149,7 @@ def process(rdd):
 	# =================Passive Aggressive Model===================
 	pac_model = PALearning(df, spark, pac_model)
 	
-	with open('pac_model.pkl', 'wb') as f:
+	with open('./trained_models/pac_model.pkl', 'wb') as f:
 		pickle.dump(pac_model, f)
 	
 	# ============================================================
@@ -158,7 +158,7 @@ def process(rdd):
 	with open('./num_iters', "r") as ni:
 		num_iters = int(ni.read())
 	
-	num_iters+=1
+	num_iters += 1
 
 	kmeans_model = \
 			clustering(df, spark, kmeans_model, num_iters)
@@ -166,17 +166,17 @@ def process(rdd):
 	with open('./num_iters', "w") as ni:
 		ni.write(str(num_iters))
 		
-	with open('kmeans_model.pkl', 'wb') as f:
+	with open('./trained_models/kmeans_model.pkl', 'wb') as f:
 		pickle.dump(kmeans_model, f)
 	# ============================================================
-	
-	# Save the model to a file
-	#pipeline.write().overwrite().save("./pipeline")
 
 
 # Main entry point for all streaming functionality
 if __name__ == '__main__':
 
+	if not os.path.isdir('./trained_models'):
+		os.mkdir('./trained_models')
+		
 	# Create a DStream - represents the stream of data received from TCP source/data server
 	# Each record in 'lines' is a line of text
 	lines = ssc.socketTextStream(TCP_IP, TCP_PORT)
