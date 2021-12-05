@@ -72,7 +72,7 @@ ssc = StreamingContext(sc, 5)
  ---------------------------- Model definitions -------------------------------------
 '''
 # Define the Incremental PCA
-pca = IncrementalPCA(n_components=30)
+#pca = IncrementalPCA(n_components=30)
 
 # Define MinMax Scaler
 minmaxscaler = MinMaxScaler()
@@ -132,15 +132,15 @@ def process(rdd):
 	records = rdd.collect()
 	
 	# List of dicts
-	dicts = [i for j in records 
-					 for i in list(json.loads(j).values())]
+	dicts = [i for j in records for i in list(json.loads(j).values())]
 	
 	if len(dicts) == 0:
 		return
 	
+	
+	
 	# Create a DataFrame with each stream	
-	df = spark.createDataFrame((Row(**d) for d in dicts), 
-								schema)
+	df = spark.createDataFrame((Row(**d) for d in dicts), schema)
 	# ============================================================
 	
 	# ==================Data Cleaning + Test======================
@@ -149,14 +149,27 @@ def process(rdd):
 	df.show()
 	# ============================================================
 	
+	
+	
 	# ==================Preprocessing + Test======================
-	df = transformers_pipeline(df, spark, pca, minmaxscaler, hv)
-	print("\nAfter Preprocessing:\n")
-	df.show()
+	
+	tokens_sentiments = df.select('tokens_noStop', 'sentiment').collect()
+	
+	sentiments = np.array([int(row['sentiment']) for row in tokens_sentiments])
+	
+	tokens = [str(row['tokens_noStop']) for row in tokens_sentiments]
+	
+	sparse_vectors = hv.transform(tokens)
+	
+	#print(sentiments)
+	#print(sparse_vectors)
+	
+	print("\nAfter Vectorizing:\n")
+	
 	# ============================================================
 
 	# ==================Logistic Regression=======================
-	lr_model = LRLearning(df, spark, lr_model)
+	lr_model = LRLearning(sparse_vectors, sentiments, spark, lr_model)
 	
 	with open('./trained_models/lr_model.pkl', 'wb') as f:
 		pickle.dump(lr_model, f)
@@ -165,7 +178,7 @@ def process(rdd):
 	
 	# ==================Multinomial Naive Bayes===================
 	multi_nb_model = \
-			  MultiNBLearning(df, spark, multi_nb_model)
+			  MultiNBLearning(sparse_vectors, sentiments, spark, multi_nb_model)
 			  
 	with open('./trained_models/multi_nb_model.pkl', 'wb') as f:
 		pickle.dump(multi_nb_model, f)		  
@@ -173,7 +186,7 @@ def process(rdd):
 	# ============================================================
 
 	# =================Passive Aggressive Model===================
-	pac_model = PALearning(df, spark, pac_model)
+	pac_model = PALearning(sparse_vectors, sentiments, spark, pac_model)
 	
 	with open('./trained_models/pac_model.pkl', 'wb') as f:
 		pickle.dump(pac_model, f)
@@ -187,7 +200,7 @@ def process(rdd):
 	k_num_iters += 1
 
 	kmeans_model = \
-			kmeans_clustering(df, spark, kmeans_model, k_num_iters)
+			kmeans_clustering(sparse_vectors, sentiments, spark, kmeans_model, k_num_iters)
 	
 	with open('./kmeans_iteration', "w") as ni:
 		ni.write(str(k_num_iters))
@@ -197,19 +210,19 @@ def process(rdd):
 	# ============================================================
 
 	# ===============Birch Clustering + Test======================
-	with open('./birch_iteration', "r") as ni:
-		b_num_iters = int(ni.read())
+	#with open('./birch_iteration', "r") as ni:
+		#b_num_iters = int(ni.read())
 	
-	b_num_iters += 1
+	#b_num_iters += 1
 
-	brc_model = \
-			birch_clustering(df, spark, brc_model, b_num_iters)
+	#brc_model = \
+			#birch_clustering(df, spark, brc_model, b_num_iters)
 	
-	with open('./birch_iteration', "w") as ni:
-		ni.write(str(b_num_iters))
+	#with open('./birch_iteration', "w") as ni:
+		#ni.write(str(b_num_iters))
 		
-	with open('./trained_models/birch_model.pkl', 'wb') as f:
-		pickle.dump(brc_model, f)
+	#with open('./trained_models/birch_model.pkl', 'wb') as f:
+		#pickle.dump(brc_model, f)
 	# ============================================================
 
 
