@@ -74,7 +74,7 @@ minmaxscaler = MinMaxScaler()
 CountVectorizer.cv_partial_fit = cv_partial_fit
 cv = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
 
-# Define HashVectorizer - TODO: figure out how to get HV to work
+# Define HashVectorizer 
 hv = HashingVectorizer(n_features=2**13, lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
 
 # Define, initialize BatchKMeans Model
