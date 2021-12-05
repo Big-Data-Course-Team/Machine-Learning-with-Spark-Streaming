@@ -75,7 +75,7 @@ CountVectorizer.cv_partial_fit = cv_partial_fit
 cv = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
 
 # Define HashVectorizer 
-hv = HashingVectorizer(n_features=2**13, lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
+hv = HashingVectorizer(n_features=2**16, alternate_sign=False, lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
 
 # Define, initialize BatchKMeans Model
 num_clusters = 2
