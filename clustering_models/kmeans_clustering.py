@@ -48,6 +48,9 @@ def kmeans_clustering(df, spark, kmeans_model, num_iters):
 	accuracy_2 = np.count_nonzero(np.array(pred_labels_2) == np.array(actual_labels)) / pred_labels.shape[0]
 			
 	print('Accuracy of KMeans: ', accuracy_1, '|', accuracy_2)
+	with open('./model_accuracies/kmeans.txt', "a") as ma:
+		ip=str(accuracy_1)+","+str(accuracy_2)+'\n'
+		ma.write(ip)
 	
 	X_train = pca.fit_transform(X_train)
 

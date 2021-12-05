@@ -197,6 +197,7 @@ def process(rdd):
 	# ============================================================
 
 	# ===============Birch Clustering + Test======================
+	'''
 	with open('./birch_iteration', "r") as ni:
 		b_num_iters = int(ni.read())
 	
@@ -210,6 +211,7 @@ def process(rdd):
 		
 	with open('./trained_models/birch_model.pkl', 'wb') as f:
 		pickle.dump(brc_model, f)
+	'''
 	# ============================================================
 
 
@@ -218,6 +220,9 @@ if __name__ == '__main__':
 
 	if not os.path.isdir('./trained_models'):
 		os.mkdir('./trained_models')
+		
+	if not os.path.isdir('./model_accuracies'):
+		os.mkdir('./model_accuracies')
 		
 	# Create a DStream - represents the stream of data received from TCP source/data server
 	# Each record in 'lines' is a line of text

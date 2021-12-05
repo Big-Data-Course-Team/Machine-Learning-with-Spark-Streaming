@@ -31,6 +31,8 @@ def MultiNBLearning(df, spark, classifier):
 	accuracy = np.count_nonzero(np.array(predictions) == y_train) / y_train.shape[0]
 
 	print("Accuracy of NB:", accuracy)
+	with open('./model_accuracies/mnb.txt', "a") as ma:
+		ma.write(str(accuracy)+'\n')
 	
 	return classifier
 	
