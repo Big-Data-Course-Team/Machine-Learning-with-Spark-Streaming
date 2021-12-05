@@ -96,7 +96,7 @@ hv = HashingVectorizer(n_features=2**16,
 '''
  ---------------------------- Processing -------------------------------------------
 '''
-def plot_roc_cur(fper, tper, model):  
+def plot_roc_curve(fper, tper, model):  
 	plt.plot(fper, tper, color='orange', label='ROC')
 	plt.plot([0, 1], [0, 1], color='darkblue', linestyle='--')
 	plt.xlabel('False Positive Rate')
