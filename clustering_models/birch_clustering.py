@@ -13,7 +13,8 @@ import matplotlib.pyplot as plt
 
 from sklearn.decomposition import PCA
 
-plt.rcParams.update({'figure.figsize':(16, 9), 'figure.dpi':100})
+import warnings
+warnings.filterwarnings("ignore")
 
 def birch_clustering(df, spark, brc_model, num_iters):
 	

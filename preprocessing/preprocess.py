@@ -38,7 +38,7 @@ def cv_partial_fit(self, batch_data):
 		
 	return self
 
-def transformers_pipeline(df, spark, pca, minmaxscaler, vectorizer, inputCols = ["tweet", "sentiment"], n=3):
+def transformers_pipeline(df, spark, pca, lda, minmaxscaler, vectorizer, inputCols = ["tweet", "sentiment"], n=3):
 	
 	# Get a list of rows - each row is a list of strings (tokens without stop words)
 	input_col = df.select('tokens_noStop').collect()
@@ -50,38 +50,37 @@ def transformers_pipeline(df, spark, pca, minmaxscaler, vectorizer, inputCols = 
 	
 	vectorizer.partial_fit(input_arr)
 	
-	output_arr = vectorizer.transform(input_arr)
-	output_arr = output_arr.toarray()
-	
+	hash_vectors = vectorizer.transform(input_arr)
+	hash_vectors = hash_vectors.toarray()
+'''
 	labels_col = df.select('sentiment').collect()
 	
 	labels_str_arr = [row['sentiment'] for row in labels_col]
 	
 	labels_arr = [int(a) for a in labels_str_arr]
 	
-	pca_X_train = list(map(lambda x: x.tolist(), output_arr))
-	pca.partial_fit(pca_X_train, labels_arr)
-	pca_transformed = pca.transform(pca_X_train)
+	X_train = list(map(lambda x: x.tolist(), hash_vectors))
+	pca.partial_fit(X_train)
+	pca_transformed = pca.transform(X_train)
 	
-	minmaxscaler.partial_fit(pca_transformed)
-	minmax_pca = minmaxscaler.transform(pca_transformed)	
-#	minmax_hash = minmaxscaler.transform(pca_transformed)
+	lda.partial_fit(X_train)
+	lda_transformed = lda.transform(X_train)
 	
 	output_col = list(map(lambda x: [x[0], x[1].tolist(), x[2].tolist(), x[3].tolist()], \
-							zip(input_str_arr, output_arr, pca_transformed, minmax_pca)))
+							zip(input_str_arr, hash_vectors, pca_transformed, lda_transformed)))
 	
 	schema = StructType([
 		StructField('tokens_noStop_copy', ArrayType(StringType())),
 		StructField('hashed_vectors', ArrayType(FloatType())),
 		StructField('pca_vectors', ArrayType(FloatType())),
-		StructField('minmax_pca_vectors', ArrayType(FloatType())),
+		StructField('lda_vectors', ArrayType(FloatType()))
 	])
 	
 	dff = spark.createDataFrame(data=output_col, schema=schema)
 
 	df = df.join(dff, dff.tokens_noStop_copy == df.tokens_noStop, 'inner')
 	df = df.drop(*['tweet', 'cleaned_tweets', 'tokens', 'tokens_noStop', 'tokens_noStop_copy'])
-	
+'''
 	return df
 	
 def df_preprocessing(dataframe):

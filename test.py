@@ -17,19 +17,18 @@ from pyspark.streaming import StreamingContext
 from pyspark.sql import SQLContext, Row, SparkSession
 from pyspark.sql.types import *
 
-from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
-from sklearn.cluster import MiniBatchKMeans
-from sklearn.linear_model import SGDClassifier, PassiveAggressiveClassifier
-from sklearn.naive_bayes import MultinomialNB
-
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.decomposition import IncrementalPCA
-
 from preprocessing.preprocess import *
 from classification_models.logistic_regression import *
 from classification_models.multinomial_nb import *
 from classification_models.passive_aggressive import *
 from clustering_models.kmeans_clustering import *
+from clustering_models.birch_clustering import *
+
+import warnings
+warnings.filterwarnings("ignore")
+
+import warnings
+warnings.filterwarnings("ignore")
 
 '''
  ---------------------------- Constant definitions ----------------------------------
@@ -62,47 +61,12 @@ spark.sparkContext.setLogLevel("ERROR")
 ssc = StreamingContext(sc, 5)
 
 '''
- ---------------------------- Model definitions -------------------------------------
-'''
-
-# Define the Incremental PCA
-pca = IncrementalPCA(n_components=2)
-
-# Define MinMax Scaler
-minmaxscaler = MinMaxScaler()
-
-# Define CountVectorizer
-CountVectorizer.cv_partial_fit = cv_partial_fit
-cv = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
-
-# Define HashVectorizer 
-hv = HashingVectorizer(n_features=2**16, alternate_sign=False, lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
-
-# Define, initialize BatchKMeans Model
-num_clusters = 2
-kmeans_model = MiniBatchKMeans(n_clusters=num_clusters, init='k-means++', n_init=1, 
-							   init_size=1000, batch_size=1000, verbose=False, max_iter=1000)
-
-# Define LR Model
-lr_model = SGDClassifier(loss='log')
-
-# Define NB Model
-multi_nb_model = MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
-
-# Define PA Model
-pac_model = PassiveAggressiveClassifier(C = 0.5, random_state = 5)
-
-
-
-'''
  ---------------------------- Processing -------------------------------------------
 '''
 # Process each stream - needs to run ML models
 def process(rdd):
 	
 	global schema, spark
-	global schema, spark, pca, minmaxscaler, cv, hv, \
-		   lr_model, multi_nb_model, pac_model, kmeans_model
 	
 	# ==================Dataframe Creation=======================
 	
@@ -112,25 +76,26 @@ def process(rdd):
 	# List of dicts
 	dicts = [i for j in records 
 					 for i in list(json.loads(j).values())]
-	
+	print(dicts)
 	if len(dicts) == 0:
 		return
-	
+
 	# Create a DataFrame with each stream	
 	df = spark.createDataFrame((Row(**d) for d in dicts), 
 								schema)
 	# ============================================================
 	
-	# ==================Data Cleaning======================
+	# ==================Data Cleaning=============================
 	df = df_preprocessing(df)
 	# ============================================================
 	
-	# ==================Preprocessing======================
+	# ==================Preprocessing=============================
 	df = transformers_pipeline(df, spark, pca, minmaxscaler, hv)
 	# ============================================================
 	
-	# ==================Getting Testing Data and Actual Labels======================
-	testingData = df.select("hashed_vectors", "sentiment").collect()
+	# =========Testing Data and Actual Labels=====================
+	testingData = df.select("hashed_vectors", 
+							"sentiment").collect()
 	X_test = np.array(list(map(lambda row: row.hashed_vectors, testingData)))
 	y_test = np.array(list(map(lambda row: row.sentiment, testingData)), dtype='int64')
 	# ============================================================

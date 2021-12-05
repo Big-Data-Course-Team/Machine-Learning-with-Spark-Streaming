@@ -13,23 +13,21 @@ import os
 
 from pyspark.mllib.clustering import StreamingKMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
-from sklearn.metrics import accuracy_score
 from sklearn.decomposition import PCA
 
 import warnings
 warnings.filterwarnings("ignore")
-
 plt.rcParams.update({'figure.figsize':(16, 9), 'figure.dpi':100})
 
 def kmeans_clustering(df, spark, kmeans_model, num_iters):
 	
-	X_train = df.select("hashed_vectors").collect()
+	#X_train = df.select("hashed_vectors").collect()
 	#X_train = df.select("pca_vectors").collect()
+	X_train = df.select("lda_vectors").collect()
 	
-	X_train = np.array([row["hashed_vectors"] for row in X_train])
+	#X_train = np.array([row["hashed_vectors"] for row in X_train])
 	#X_train = np.array([row["pca_vectors"] for row in X_train])
-
-	pca = PCA(2)
+	X_train = np.array([row["lda_vectors"] for row in X_train])
 	
 	X_train = np.reshape(X_train, (X_train.shape[0], -1))
 	
@@ -49,18 +47,19 @@ def kmeans_clustering(df, spark, kmeans_model, num_iters):
 			
 	print('Accuracy of KMeans: ', accuracy_1, '|', accuracy_2)
 	
-	X_train = pca.fit_transform(X_train)
+	#pca = PCA(2)
+	#X_train = pca.fit_transform(X_train)
 
 	figure, axis = plt.subplots(1, 2)
 	axis[0].scatter(X_train[:, 0], X_train[:, 1], c=pred_labels)
 	axis[0].set_title('KMeans Clusters')
-	axis[0].set_xlabel('PCA1')
-	axis[0].set_ylabel('PCA2')
+	axis[0].set_xlabel('LDA1')
+	axis[0].set_ylabel('LDA2')
 	
 	axis[1].scatter(X_train[:, 0], X_train[:, 1], c=actual_labels)
 	axis[1].set_title('Original Labels')
-	axis[1].set_xlabel('PCA1')
-	axis[1].set_ylabel('PCA2')
+	axis[1].set_xlabel('LDA1')
+	axis[1].set_ylabel('LDA2')
 	
 	if not os.path.isdir('./cluster_plots'):
 		os.mkdir('./cluster_plots')

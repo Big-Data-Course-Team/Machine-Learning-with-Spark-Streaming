@@ -23,7 +23,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.cluster import MiniBatchKMeans, Birch
 
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.decomposition import IncrementalPCA
+from sklearn.decomposition import IncrementalPCA, LatentDirichletAllocation
 
 from preprocessing.preprocess import *
 from classification_models.logistic_regression import *
@@ -72,8 +72,15 @@ ssc = StreamingContext(sc, 5)
  ---------------------------- Model definitions -------------------------------------
 '''
 # Define the Incremental PCA
-pca = IncrementalPCA(n_components=30)
+pca = IncrementalPCA(n_components=2)
 
+# Define the online learning LatentDirichletAllocation
+lda = LatentDirichletAllocation(n_components=5,
+								max_iter=1,
+								learning_method="online",
+								learning_offset=50.0,
+								random_state=0)
+                                      
 # Define MinMax Scaler
 minmaxscaler = MinMaxScaler()
 
@@ -122,7 +129,7 @@ kmeans_model = MiniBatchKMeans(n_clusters=2,
 def process(rdd):
 	
 	global schema, spark, \
-		   pca, minmaxscaler, cv, hv, \
+		   pca, lda, minmaxscaler, cv, hv, \
 		   lr_model, multi_nb_model, pac_model, \
 		   kmeans_model, brc_model
 	
@@ -134,10 +141,10 @@ def process(rdd):
 	# List of dicts
 	dicts = [i for j in records 
 					 for i in list(json.loads(j).values())]
-	
+	print(dicts)
 	if len(dicts) == 0:
 		return
-	
+
 	# Create a DataFrame with each stream	
 	df = spark.createDataFrame((Row(**d) for d in dicts), 
 								schema)
@@ -150,11 +157,11 @@ def process(rdd):
 	# ============================================================
 	
 	# ==================Preprocessing + Test======================
-	df = transformers_pipeline(df, spark, pca, minmaxscaler, hv)
+	df = transformers_pipeline(df, spark, pca, lda, minmaxscaler, hv)
 	print("\nAfter Preprocessing:\n")
 	df.show()
 	# ============================================================
-
+'''
 	# ==================Logistic Regression=======================
 	lr_model = LRLearning(df, spark, lr_model)
 	
@@ -196,6 +203,7 @@ def process(rdd):
 		pickle.dump(kmeans_model, f)
 	# ============================================================
 
+
 	# ===============Birch Clustering + Test======================
 	with open('./birch_iteration', "r") as ni:
 		b_num_iters = int(ni.read())
@@ -211,7 +219,7 @@ def process(rdd):
 	with open('./trained_models/birch_model.pkl', 'wb') as f:
 		pickle.dump(brc_model, f)
 	# ============================================================
-
+'''
 
 # Main entry point for all streaming functionality
 if __name__ == '__main__':
