@@ -8,3 +8,4 @@ model_accuracies/*
 trained_models/*
 kmeans_iteration
 birch_iteration
+cluster_plots/*

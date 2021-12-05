@@ -107,7 +107,7 @@ def plot_roc_curve(fper, tper, model):
 	plt.title('Receiver Operating Characteristic (ROC) Curve')
 	plt.legend()
 
-	img_file = open("./roc_curves" + model + "_" + str(num_iters), "wb+")
+	img_file = open("./roc_curves/" + model + "_" + str(num_iters), "wb+")
 	num_iters += 1
 	plt.savefig(img_file)
 
