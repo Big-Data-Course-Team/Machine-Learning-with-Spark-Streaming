@@ -18,9 +18,9 @@ from pyspark.sql import SQLContext, Row, SparkSession
 from pyspark.sql.types import *
 
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
-from sklearn.cluster import MiniBatchKMeans
 from sklearn.linear_model import SGDClassifier, PassiveAggressiveClassifier
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.cluster import MiniBatchKMeans, Birch
 
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.decomposition import IncrementalPCA
@@ -30,6 +30,10 @@ from classification_models.logistic_regression import *
 from classification_models.multinomial_nb import *
 from classification_models.passive_aggressive import *
 from clustering_models.kmeans_clustering import *
+from clustering_models.birch_clustering import *
+
+import warnings
+warnings.filterwarnings("ignore")
 
 '''
  ---------------------------- Constant definitions ----------------------------------
@@ -65,40 +69,59 @@ ssc = StreamingContext(sc, 5)
  ---------------------------- Model definitions -------------------------------------
 '''
 # Define the Incremental PCA
-pca = IncrementalPCA(n_components=2)
+pca = IncrementalPCA(n_components=30)
 
 # Define MinMax Scaler
 minmaxscaler = MinMaxScaler()
 
 # Define CountVectorizer
 CountVectorizer.cv_partial_fit = cv_partial_fit
-cv = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
+cv = CountVectorizer(lowercase=True, 
+					 analyzer = 'word', 
+					 stop_words='english', 
+					 ngram_range=(1,2))
 
 # Define HashVectorizer 
-hv = HashingVectorizer(n_features=2**16, alternate_sign=False, lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
-
-# Define, initialize BatchKMeans Model
-num_clusters = 2
-kmeans_model = MiniBatchKMeans(n_clusters=num_clusters, init='k-means++', n_init=1, 
-							   init_size=1000, batch_size=1000, verbose=False, max_iter=1000)
+hv = HashingVectorizer(n_features=2**16, 
+					   alternate_sign=False, 
+					   lowercase=True, 
+					   analyzer = 'word', 
+					   stop_words='english', 
+					   ngram_range=(1,2))
 
 # Define LR Model
 lr_model = SGDClassifier(loss='log')
 
 # Define NB Model
-multi_nb_model = MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
+multi_nb_model = MultinomialNB(alpha=1.0, 
+							   class_prior=None, 
+							   fit_prior=True)
 
 # Define PA Model
-pac_model = PassiveAggressiveClassifier(C = 0.5, random_state = 5)
+pac_model = PassiveAggressiveClassifier(C = 0.5, 
+										random_state = 5)
 
+# Define Birch Model
+brc_model = Birch(n_clusters=2)
+
+# Define BatchKMeans Model
+kmeans_model = MiniBatchKMeans(n_clusters=2, 
+							   init='k-means++', 
+							   n_init=2, 
+							   init_size=1000, 
+							   verbose=False, 
+							   max_iter=1000)
+							   
 '''
  ---------------------------- Processing -------------------------------------------
 '''
 # Process each stream - needs to run ML models
 def process(rdd):
 	
-	global schema, spark, pca, minmaxscaler, cv, hv, \
-		   lr_model, multi_nb_model, pac_model, kmeans_model
+	global schema, spark, \
+		   pca, minmaxscaler, cv, hv, \
+		   lr_model, multi_nb_model, pac_model, \
+		   kmeans_model, brc_model
 	
 	# ==================Dataframe Creation=======================
 	
@@ -128,7 +151,7 @@ def process(rdd):
 	print("\nAfter Preprocessing:\n")
 	df.show()
 	# ============================================================
-	
+
 	# ==================Logistic Regression=======================
 	lr_model = LRLearning(df, spark, lr_model)
 	
@@ -155,19 +178,35 @@ def process(rdd):
 	# ============================================================
 
 	# ===============KMeans Clustering + Test=====================
-	with open('./num_iters', "r") as ni:
-		num_iters = int(ni.read())
+	with open('./kmeans_iteration', "r") as ni:
+		k_num_iters = int(ni.read())
 	
-	num_iters += 1
+	k_num_iters += 1
 
 	kmeans_model = \
-			clustering(df, spark, kmeans_model, num_iters)
+			kmeans_clustering(df, spark, kmeans_model, k_num_iters)
 	
-	with open('./num_iters', "w") as ni:
-		ni.write(str(num_iters))
+	with open('./kmeans_iteration', "w") as ni:
+		ni.write(str(k_num_iters))
 		
 	with open('./trained_models/kmeans_model.pkl', 'wb') as f:
 		pickle.dump(kmeans_model, f)
+	# ============================================================
+
+	# ===============Birch Clustering + Test======================
+	with open('./birch_iteration', "r") as ni:
+		b_num_iters = int(ni.read())
+	
+	b_num_iters += 1
+
+	brc_model = \
+			birch_clustering(df, spark, brc_model, b_num_iters)
+	
+	with open('./birch_iteration', "w") as ni:
+		ni.write(str(b_num_iters))
+		
+	with open('./trained_models/birch_model.pkl', 'wb') as f:
+		pickle.dump(brc_model, f)
 	# ============================================================
 
 
@@ -184,9 +223,10 @@ if __name__ == '__main__':
 	# TODO: check if split is necessary
 	json_str = lines.flatMap(lambda x: x.split('\n'))
 	
-	file=open("./num_iters","w")
-	file.write("0")
-	file.close()
+	with open('./birch_iteration', "w") as ni:
+		ni.write('0')
+	with open('./kmeans_iteration', "w") as ni:
+		ni.write('0')
 	
 	# Process each RDD
 	lines.foreachRDD(process)

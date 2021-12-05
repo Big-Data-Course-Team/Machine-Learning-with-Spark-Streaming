@@ -2,3 +2,4 @@
 sentiment/*
 output.txt
 stream.py
+trained_models/*

@@ -75,8 +75,8 @@ minmaxscaler = MinMaxScaler()
 CountVectorizer.cv_partial_fit = cv_partial_fit
 cv = CountVectorizer(lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
 
-# Define HashVectorizer - TODO: figure out how to get HV to work
-hv = HashingVectorizer(n_features=2**13, lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
+# Define HashVectorizer 
+hv = HashingVectorizer(n_features=2**16, alternate_sign=False, lowercase=True, analyzer = 'word', stop_words='english', ngram_range=(1,2))
 
 # Define, initialize BatchKMeans Model
 num_clusters = 2
@@ -91,6 +91,7 @@ multi_nb_model = MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
 
 # Define PA Model
 pac_model = PassiveAggressiveClassifier(C = 0.5, random_state = 5)
+
 
 
 '''
@@ -178,9 +179,9 @@ def process(rdd):
 	with open('./trained_models/kmeans_model.pkl', 'rb') as f:
 		kmeans_model = pickle.load(f)
 		
-	X_test = df.select('pca_vectors').collect()
+	X_test = df.select("hashed_vectors").collect()
 	
-	X_test = np.array([row['pca_vectors'] for row in X_test])
+	X_test = np.array([row["hashed_vectors"] for row in X_test])
 	X_test = np.reshape(X_test, (X_test.shape[0], -1))
 		
 	predictions_kmeans = kmeans_model.predict(X_test)	
