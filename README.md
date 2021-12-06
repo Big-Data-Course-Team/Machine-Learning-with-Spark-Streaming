@@ -1,5 +1,5 @@
 # Sentiment Analysis with Spark Streaming
-### Current Repository Structure
+## Current Repository Structure
 ```
 .
 ├── Batch_1000
@@ -31,13 +31,13 @@
 └── train.py
 
 ```
-### Machine Learning Pipeline
+## Machine Learning Pipeline
 ![image](https://user-images.githubusercontent.com/56372418/144854552-f5fd5522-6588-4866-9743-4c77e5ccbf95.png)
-### About the Dataset
+## About the Dataset
 1. Two CSV files each for training (with 1520k records) and testing (with 80k records).
 2. Each record has two columns, one for the sentiment, and the other, the tweet.
 3. Sentiment is either 0 (negative) or 4 (positive).
-### Task Workflow
+## Task Workflow
 1. Streaming the data with Spark Streaming.
 2. Cleaning and Preprocessing each RDD of input data.
 3. Online/incremental training of the classification models.
