@@ -15,10 +15,17 @@
 ├── clustering_models
 │   ├── kmeans_clustering.py
 │   ├── birch_clustering.py│   
-├── LICENSE
 ├── preprocessing
 │   ├── preprocess.py
+├── .gitignore
+├── LICENSE
 ├── README.md
+├── Sentiment Analysis Using Streaming Spark.pdf
+├── batch_accuracy_MNB
+├── batch_accuracy_PAC
+├── batch_accuracy_SGD
+├── batch_test_accuracies.py
+├── hyper_test_accuracies.py
 ├── requirements.txt
 ├── test.py
 └── train.py
@@ -33,6 +40,7 @@
 1. Streaming the data
 2. Processing each stream of data
 3. Building the ML models
-4. Testing the ML models
-5. Clustering
+4. Clustering
+5. Testing the models
+6. Plotting graphs for analysis
 
