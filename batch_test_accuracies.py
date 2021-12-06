@@ -9,7 +9,9 @@ warnings.filterwarnings("ignore")
 
 import argparse
 
-plt.rcParams.update({'figure.figsize':(16, 9), 'figure.dpi':100})
+plt.rcParams.update({'figure.figsize':(14, 10), 'figure.dpi':100})
+plt.rcParams.update({'font.size': 14})
+
 
 acc_file_1 = open('Batch_1000/test_eval_metrics/lr_3.txt', "r")
 acc_list_1 = acc_file_1.readlines()
@@ -48,8 +50,8 @@ plt.ylabel('Accuracy')
 plt.title("SGD")
 plt.legend()
 	
-img_file = open('./batch_accuracy_SGD', "wb+")
-plt.savefig(img_file)
+img_file = open('./batch_accuracy_SGD.eps', "wb+")
+plt.savefig(img_file, format='eps', bbox_inches='tight')
 plt.clf()
 
 acc_file_1 = open('Batch_1000/test_eval_metrics/mnb_3.txt', "r")
@@ -89,8 +91,8 @@ plt.ylabel('Accuracy')
 plt.title("MNB")
 plt.legend()
 	
-img_file = open('./batch_accuracy_MNB', "wb+")
-plt.savefig(img_file)
+img_file = open('./batch_accuracy_MNB.eps', "wb+")
+plt.savefig(img_file, format='eps', bbox_inches='tight')
 plt.clf()
 
 
@@ -131,8 +133,8 @@ plt.ylabel('Accuracy')
 plt.title("PAC")
 plt.legend()
 	
-img_file = open('./batch_accuracy_PAC', "wb+")
-plt.savefig(img_file)
+img_file = open('./batch_accuracy_PAC.eps', "wb+")
+plt.savefig(img_file, format='eps', bbox_inches='tight')
 plt.clf()
 
 

@@ -103,6 +103,7 @@ num_iters = 0
 
 def plot_roc_curve(fper, tper, model):  
 	global num_iters
+	plt.clf()
 	plt.plot(fper, tper, color='orange', label='ROC')
 	plt.plot([0, 1], [0, 1], color='darkblue', linestyle='--')
 	plt.xlabel('False Positive Rate')
@@ -110,7 +111,7 @@ def plot_roc_curve(fper, tper, model):
 	plt.title('Receiver Operating Characteristic (ROC) Curve')
 	plt.legend()
 
-	img_file = open("./Batch_3000/roc_curves/" + model + "_" + str(num_iters), "wb+")
+	img_file = open("./roc_curves/" + model + "_" + str(num_iters), "wb+")
 	num_iters += 1
 	plt.savefig(img_file)
 
@@ -160,42 +161,42 @@ def process(rdd):
 	# ==================Testing Logistic Regression==========================================
 	
 	# Model 1
-	with open('./Batch_3000/trained_models/lr_model_1.pkl', 'rb') as f:
+	with open('./trained_models/lr_model_1.pkl', 'rb') as f:
 		lr_model_1 = pickle.load(f)
 		
 	pred_lr_1 = lr_model_1.predict(X_test)
 	
 	accuracy_lr_1 = np.count_nonzero(np.array(pred_lr_1) == y_test)/y_test.shape[0]	
 	print("Accuracy of LR 1:", accuracy_lr_1)
-	with open('./Batch_3000/test_eval_metrics/lr_1.txt', "a") as ma:
+	with open('./test_eval_metrics/lr_1.txt', "a") as ma:
 		ma.write(str(accuracy_lr_1)+'\n')
 
 	fper, tper, _ = roc_curve(y_test, pred_lr_1, pos_label=4) 
 	plot_roc_curve(fper, tper, 'lr_model_1')
 
 	# Model 2
-	with open('./Batch_3000/trained_models/lr_model_2.pkl', 'rb') as f:
+	with open('./trained_models/lr_model_2.pkl', 'rb') as f:
 		lr_model_2 = pickle.load(f)
 		
 	pred_lr_2 = lr_model_2.predict(X_test)
 	
 	accuracy_lr_2 = np.count_nonzero(np.array(pred_lr_2) == y_test)/y_test.shape[0]	
 	print("Accuracy of LR 2:", accuracy_lr_2)
-	with open('./Batch_3000/test_eval_metrics/lr_2.txt', "a") as ma:
+	with open('./test_eval_metrics/lr_2.txt', "a") as ma:
 		ma.write(str(accuracy_lr_2)+'\n')
 
 	fper, tper, _ = roc_curve(y_test, pred_lr_2, pos_label=4) 
 	plot_roc_curve(fper, tper, 'lr_model_2')
 
 	# Model 3
-	with open('./Batch_3000/trained_models/lr_model_3.pkl', 'rb') as f:
+	with open('./trained_models/lr_model_3.pkl', 'rb') as f:
 		lr_model_3 = pickle.load(f)
 		
 	pred_lr_3 = lr_model_3.predict(X_test)
 	
 	accuracy_lr_3 = np.count_nonzero(np.array(pred_lr_3) == y_test)/y_test.shape[0]	
 	print("Accuracy of LR 3:", accuracy_lr_3)
-	with open('./Batch_3000/test_eval_metrics/lr_3.txt', "a") as ma:
+	with open('./test_eval_metrics/lr_3.txt', "a") as ma:
 		ma.write(str(accuracy_lr_3)+'\n')
 
 	fper, tper, _ = roc_curve(y_test, pred_lr_3, pos_label=4) 
@@ -206,42 +207,42 @@ def process(rdd):
 	# ==================Testing Multinomial Naive Bayes=========================================
 
 	# Model 1
-	with open('./Batch_3000/trained_models/multi_nb_model_1.pkl', 'rb') as f:
+	with open('./trained_models/multi_nb_model_1.pkl', 'rb') as f:
 		multi_nb_model_1 = pickle.load(f)
 		
 	pred_mnb_1 = multi_nb_model_1.predict(X_test)	
 	accuracy_mnb_1 = np.count_nonzero(np.array(pred_mnb_1) == y_test)/y_test.shape[0]	
 	print("Accuracy of NB 1:", accuracy_mnb_1)
 	
-	with open('./Batch_3000/test_eval_metrics/mnb_1.txt', "a") as ma:
+	with open('./test_eval_metrics/mnb_1.txt', "a") as ma:
 		ma.write(str(accuracy_mnb_1)+'\n')
 	
 	fper, tper, _ = roc_curve(y_test, pred_mnb_1, pos_label=4) 
 	plot_roc_curve(fper, tper, 'multi_nb_model_1')
 	
 	# Model 2
-	with open('./Batch_3000/trained_models/multi_nb_model_2.pkl', 'rb') as f:
+	with open('./trained_models/multi_nb_model_2.pkl', 'rb') as f:
 		multi_nb_model_2 = pickle.load(f)
 		
 	pred_mnb_2 = multi_nb_model_2.predict(X_test)	
 	accuracy_mnb_2 = np.count_nonzero(np.array(pred_mnb_2) == y_test)/y_test.shape[0]	
 	print("Accuracy of NB 2:", accuracy_mnb_2)
 	
-	with open('./Batch_3000/test_eval_metrics/mnb_2.txt', "a") as ma:
+	with open('./test_eval_metrics/mnb_2.txt', "a") as ma:
 		ma.write(str(accuracy_mnb_2)+'\n')
 
 	fper, tper, _ = roc_curve(y_test, pred_mnb_2, pos_label=4) 
 	plot_roc_curve(fper, tper, 'multi_nb_model_2')
 	
 	# Model 3
-	with open('./Batch_3000/trained_models/multi_nb_model_3.pkl', 'rb') as f:
+	with open('./trained_models/multi_nb_model_3.pkl', 'rb') as f:
 		multi_nb_model_3 = pickle.load(f)
 		
 	pred_mnb_3 = multi_nb_model_3.predict(X_test)	
 	accuracy_mnb_3 = np.count_nonzero(np.array(pred_mnb_3) == y_test)/y_test.shape[0]	
 	print("Accuracy of NB 3:", accuracy_mnb_3)
 	
-	with open('./Batch_3000/test_eval_metrics/mnb_3.txt', "a") as ma:
+	with open('./test_eval_metrics/mnb_3.txt', "a") as ma:
 		ma.write(str(accuracy_mnb_3)+'\n')
 
 	fper, tper, _ = roc_curve(y_test, pred_mnb_3, pos_label=4) 
@@ -252,36 +253,36 @@ def process(rdd):
 	# ==================Testing Passive Aggressive Model=======================
 	
 	# Model 1
-	with open('./Batch_3000/trained_models/pac_model_1.pkl', 'rb') as f:
+	with open('./trained_models/pac_model_1.pkl', 'rb') as f:
 		pac_model_1 = pickle.load(f)
 		
 	pred_pac_1 = pac_model_1.predict(X_test)	
 	accuracy_pac_1 = np.count_nonzero(np.array(pred_pac_1) == y_test) / y_test.shape[0]	
 	print("Accuracy of PAC 1:", accuracy_pac_1)
 	
-	with open('./Batch_3000/test_eval_metrics/pac_1.txt', "a") as ma:
+	with open('./test_eval_metrics/pac_1.txt', "a") as ma:
 		ma.write(str(accuracy_pac_1)+'\n')
 	
 	# Model 2
-	with open('./Batch_3000/trained_models/pac_model_2.pkl', 'rb') as f:
+	with open('./trained_models/pac_model_2.pkl', 'rb') as f:
 		pac_model_2 = pickle.load(f)
 		
 	pred_pac_2 = pac_model_2.predict(X_test)	
 	accuracy_pac_2 = np.count_nonzero(np.array(pred_pac_2) == y_test) / y_test.shape[0]	
 	print("Accuracy of PAC 2:", accuracy_pac_2)
 	
-	with open('./Batch_3000/test_eval_metrics/pac_2.txt', "a") as ma:
+	with open('./test_eval_metrics/pac_2.txt', "a") as ma:
 		ma.write(str(accuracy_pac_2)+'\n')
 	
 	# Model 3
-	with open('./Batch_3000/trained_models/pac_model_3.pkl', 'rb') as f:
+	with open('./trained_models/pac_model_3.pkl', 'rb') as f:
 		pac_model_3 = pickle.load(f)
 		
 	pred_pac_3 = pac_model_3.predict(X_test)	
 	accuracy_pac_3 = np.count_nonzero(np.array(pred_pac_3) == y_test) / y_test.shape[0]	
 	print("Accuracy of PAC 3:", accuracy_pac_3)
 	
-	with open('./Batch_3000/test_eval_metrics/pac_3.txt', "a") as ma:
+	with open('./test_eval_metrics/pac_3.txt', "a") as ma:
 		ma.write(str(accuracy_pac_3)+'\n')
 	# ============================================================
 	
@@ -293,13 +294,13 @@ def process(rdd):
 	
 	svd = TruncatedSVD(n_components=2)
 	
-	with open('./Batch_3000/test_kmeans_iteration', "r") as ni:
+	with open('./test_kmeans_iteration', "r") as ni:
 		k_num_iters = int(ni.read())
 	k_num_iters += 1
-	with open('./Batch_3000/test_kmeans_iteration', "w") as ni:
+	with open('./test_kmeans_iteration', "w") as ni:
 		ni.write(str(k_num_iters))
 			
-	with open('./Batch_3000/trained_models/kmeans_model.pkl', 'rb') as f:
+	with open('./trained_models/kmeans_model.pkl', 'rb') as f:
 		kmeans_model = pickle.load(f)
 
 	predictions_kmeans = kmeans_model.predict(X_test)	
@@ -312,7 +313,7 @@ def process(rdd):
 			
 	print('Accuracy of KMeans: ', accuracy_1_kmeans, accuracy_2_kmeans)
 	
-	with open('./Batch_3000/test_eval_metrics/kmeans.txt', "a") as ma:
+	with open('./test_eval_metrics/kmeans.txt', "a") as ma:
 		ip=str(accuracy_1_kmeans)+","+str(accuracy_2_kmeans)+'\n'
 		ma.write(ip)
 	
@@ -329,10 +330,10 @@ def process(rdd):
 	axis[1].set_xlabel('LDA1')
 	axis[1].set_ylabel('LDA2')
 	
-	if not os.path.isdir('./Batch_3000/test_cluster_plots'):
-		os.mkdir('./Batch_3000/test_cluster_plots')
+	if not os.path.isdir('./test_cluster_plots'):
+		os.mkdir('./test_cluster_plots')
 
-	img_file = open("./Batch_3000/test_cluster_plots/KMeans_Batch_" + str(k_num_iters), "wb+")
+	img_file = open("./test_cluster_plots/KMeans_Batch_" + str(k_num_iters), "wb+")
 	plt.savefig(img_file)
 	# ============================================================
 	
@@ -341,14 +342,14 @@ def process(rdd):
 if __name__ == '__main__':
 
 	# Contains evaluation metric values for each iteration of every model tested
-	if not os.path.isdir('./Batch_3000/test_eval_metrics'):
-		os.mkdir('./Batch_3000/test_eval_metrics')
+	if not os.path.isdir('./test_eval_metrics'):
+		os.mkdir('./test_eval_metrics')
 	
 	# Contains ROC curve plots for each classification model tested
-	if not os.path.isdir('./Batch_3000/roc_curves'):
-		os.mkdir('./Batch_3000/roc_curves')
+	if not os.path.isdir('./roc_curves'):
+		os.mkdir('./roc_curves')
 		
-	with open('./Batch_3000/test_kmeans_iteration', "w") as ni:
+	with open('./test_kmeans_iteration', "w") as ni:
 		ni.write('0')
 
 	# Create a DStream - represents the stream of data received from TCP source/data server
