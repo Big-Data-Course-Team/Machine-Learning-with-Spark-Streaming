@@ -9,6 +9,9 @@ warnings.filterwarnings("ignore")
 
 import argparse
 
+from matplotlib.ticker import FormatStrFormatter
+
+
 
 parser = argparse.ArgumentParser(description='Plots graphs for given batch size folder')
 parser.add_argument('--batch_num', '-bn', help='Batch Size Folder to Use', required=True, type=str)
@@ -26,13 +29,13 @@ file_name_2 = i+'_'+'2'+'.txt'
 file_name_3 = i+'_'+'3'+'.txt'
 acc_file_1 = open(folder_name+'test_eval_metrics/'+file_name_1, "r")
 acc_list_1 = acc_file_1.readlines()
-acc_list_1 = ['{:.2f}'.format(float(i)) for i in acc_list_1]
+acc_list_1 = [float(i) for i in acc_list_1]
 acc_file_2 = open(folder_name+'test_eval_metrics/'+file_name_2, "r")
 acc_list_2 = acc_file_2.readlines()
-acc_list_2 = ['{:.2f}'.format(float(i)) for i in acc_list_2]
+acc_list_2 = [float(i) for i in acc_list_2]
 acc_file_3 = open(folder_name+'test_eval_metrics/'+file_name_3, "r")
 acc_list_3 = acc_file_3.readlines()
-acc_list_3 = ['{:.2f}'.format(float(i)) for i in acc_list_3]
+acc_list_3 = [float(i) for i in acc_list_3]
 iters=[i for i in range (1,len(acc_list_1)+1)]
 
 plt.plot(iters,acc_list_1,label='loss function -log');
@@ -54,18 +57,19 @@ file_name_2 = i+'_'+'2'+'.txt'
 file_name_3 = i+'_'+'3'+'.txt'
 acc_file_1 = open(folder_name+'test_eval_metrics/'+file_name_1, "r")
 acc_list_1 = acc_file_1.readlines()
-acc_list_1 = ['{:.2f}'.format(float(i)) for i in acc_list_1]
+acc_list_1 = [float(i) for i in acc_list_1]
 acc_file_2 = open(folder_name+'test_eval_metrics/'+file_name_2, "r")
 acc_list_2 = acc_file_2.readlines()
-acc_list_2 = ['{:.2f}'.format(float(i)) for i in acc_list_2]
+acc_list_2 = [float(i) for i in acc_list_2]
 acc_file_3 = open(folder_name+'test_eval_metrics/'+file_name_3, "r")
 acc_list_3 = acc_file_3.readlines()
-acc_list_3 = ['{:.2f}'.format(float(i)) for i in acc_list_3]
+acc_list_3 = [float(i) for i in acc_list_3]
 iters=[i for i in range (1,len(acc_list_1)+1)]
 
 plt.plot(iters,acc_list_1,label='parameter alpha = 1.0');
 plt.plot(iters,acc_list_2,label='parameter alpha = 0.5');
 plt.plot(iters,acc_list_3,label='parameter alpha = 0.7');
+
 plt.xlabel('Iteration')
 plt.ylabel('Accuracy')
 plt.title("Multinomial Naive Bayes Classifier")
@@ -83,13 +87,13 @@ file_name_2 = i+'_'+'2'+'.txt'
 file_name_3 = i+'_'+'3'+'.txt'
 acc_file_1 = open(folder_name+'test_eval_metrics/'+file_name_1, "r")
 acc_list_1 = acc_file_1.readlines()
-acc_list_1 = ['{:.2f}'.format(float(i)) for i in acc_list_1]
+acc_list_1 = [float(i) for i in acc_list_1]
 acc_file_2 = open(folder_name+'test_eval_metrics/'+file_name_2, "r")
 acc_list_2 = acc_file_2.readlines()
-acc_list_2 = ['{:.2f}'.format(float(i)) for i in acc_list_2]
+acc_list_2 = [float(i) for i in acc_list_2]
 acc_file_3 = open(folder_name+'test_eval_metrics/'+file_name_3, "r")
 acc_list_3 = acc_file_3.readlines()
-acc_list_3 = ['{:.2f}'.format(float(i)) for i in acc_list_3]
+acc_list_3 = [float(i) for i in acc_list_3]
 iters=[i for i in range (1,len(acc_list_1)+1)]
 
 plt.plot(iters,acc_list_1,label='parameter C = 0.2');
