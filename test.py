@@ -96,6 +96,10 @@ hv = HashingVectorizer(n_features=2**16,
 					   stop_words='english', 
 					   ngram_range=(1,2))
 
+# Matplotlib
+plt.rcParams.update({'figure.figsize':(14, 10), 'figure.dpi':100})
+plt.rcParams.update({'font.size': 14})
+
 '''
  ---------------------------- Processing -------------------------------------------
 '''
@@ -111,9 +115,9 @@ def plot_roc_curve(fper, tper, model):
 	plt.title('Receiver Operating Characteristic (ROC) Curve')
 	plt.legend()
 
-	img_file = open("./roc_curves/" + model + "_" + str(num_iters), "wb+")
+	img_file = open("./roc_curves/" + model + "_" + str(num_iters) + '.eps', "wb+")
 	num_iters += 1
-	plt.savefig(img_file)
+	plt.savefig(img_file, format='eps', bbox_inches='tight')
 
 # Process each stream - needs to run ML models
 def process(rdd):
@@ -262,6 +266,9 @@ def process(rdd):
 	
 	with open('./test_eval_metrics/pac_1.txt', "a") as ma:
 		ma.write(str(accuracy_pac_1)+'\n')
+		
+	fper, tper, _ = roc_curve(y_test, pred_mnb_1, pos_label=4) 
+	plot_roc_curve(fper, tper, 'pac_model_1')
 	
 	# Model 2
 	with open('./trained_models/pac_model_2.pkl', 'rb') as f:
@@ -273,6 +280,9 @@ def process(rdd):
 	
 	with open('./test_eval_metrics/pac_2.txt', "a") as ma:
 		ma.write(str(accuracy_pac_2)+'\n')
+		
+	fper, tper, _ = roc_curve(y_test, pred_mnb_2, pos_label=4) 
+	plot_roc_curve(fper, tper, 'pac_model_2')
 	
 	# Model 3
 	with open('./trained_models/pac_model_3.pkl', 'rb') as f:
@@ -282,8 +292,12 @@ def process(rdd):
 	accuracy_pac_3 = np.count_nonzero(np.array(pred_pac_3) == y_test) / y_test.shape[0]	
 	print("Accuracy of PAC 3:", accuracy_pac_3)
 	
+	
 	with open('./test_eval_metrics/pac_3.txt', "a") as ma:
 		ma.write(str(accuracy_pac_3)+'\n')
+		
+	fper, tper, _ = roc_curve(y_test, pred_mnb_3, pos_label=4) 
+	plot_roc_curve(fper, tper, 'pac_model_3')
 	# ============================================================
 	
 	'''
@@ -322,19 +336,20 @@ def process(rdd):
 	figure, axis = plt.subplots(1, 2)
 	axis[0].scatter(X_test_plot[:, 0], X_test_plot[:, 1], c=predictions_kmeans)
 	axis[0].set_title('KMeans Clusters')
-	axis[0].set_xlabel('LDA1')
-	axis[0].set_ylabel('LDA2')
+	axis[0].set_xlabel('Feature 1')
+	axis[0].set_ylabel('Feature 2')
 	
 	axis[1].scatter(X_test_plot[:, 0], X_test_plot[:, 1], c=y_test)
 	axis[1].set_title('Original Labels')
-	axis[1].set_xlabel('LDA1')
-	axis[1].set_ylabel('LDA2')
+	axis[1].set_xlabel('Feature 1')
+	axis[1].set_ylabel('Feature 2')
 	
 	if not os.path.isdir('./test_cluster_plots'):
 		os.mkdir('./test_cluster_plots')
 
-	img_file = open("./test_cluster_plots/KMeans_Batch_" + str(k_num_iters), "wb+")
-	plt.savefig(img_file)
+	img_file = open("./test_cluster_plots/KMeans_Batch_" + str(k_num_iters) + '.eps', "wb+")
+	plt.savefig(img_file, format='eps', bbox_inches='tight')
+	plt.clf()
 	# ============================================================
 	
 
