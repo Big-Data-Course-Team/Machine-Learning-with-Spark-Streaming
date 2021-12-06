@@ -1,5 +1,5 @@
 # Sentiment Analysis with Spark Streaming
-Utilizing Spark Streaming to stream a corpus of tweets and their corresponding sentiment labels, this repository details the conduction of a study on the training and evaluation of multiple classification and clustering online/incremental learning ML models that are able to learn on batches of data streamed over time. Analysis is done on various performance metrics against varying hyperparmeter and streaming batch size values; the corresponding trends are plotted for each combination of variables under analysis.
+Utilizing Spark Streaming to stream a corpus of tweets and their corresponding sentiment labels, this repository details the conduction of a study on the training and evaluation of multiple classification and clustering online/incremental learning ML models that are able to learn on batches of data streamed over time. Analysis is done on various performance metrics against varying hyperparameter and streaming batch size values; the corresponding trends are plotted for each combination of variables under analysis.
 ## Machine Learning Pipeline
 ![image](https://user-images.githubusercontent.com/56372418/144854552-f5fd5522-6588-4866-9743-4c77e5ccbf95.png)
 ## Current Repository Structure
