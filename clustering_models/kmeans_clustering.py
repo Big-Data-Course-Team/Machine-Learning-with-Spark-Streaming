@@ -45,13 +45,13 @@ def kmeans_clustering(X, y, spark, kmeans_model, num_iters):
 	figure, axis = plt.subplots(1, 2)
 	axis[0].scatter(X_train[:, 0], X_train[:, 1], c=pred_labels)
 	axis[0].set_title('KMeans Clusters')
-	axis[0].set_xlabel('LDA1')
-	axis[0].set_ylabel('LDA2')
+	axis[0].set_xlabel('Feature 1')
+	axis[0].set_ylabel('Feature 2')
 	
 	axis[1].scatter(X_train[:, 0], X_train[:, 1], c=y)
 	axis[1].set_title('Original Labels')
-	axis[1].set_xlabel('LDA1')
-	axis[1].set_ylabel('LDA2')
+	axis[1].set_xlabel('Feature 1')
+	axis[1].set_ylabel('Feature 2')
 	
 	if not os.path.isdir('./cluster_plots'):
 		os.mkdir('./cluster_plots')
