@@ -39,8 +39,8 @@
 ### Task Workflow
 1. Streaming the data
 2. Processing each stream of data
-3. Building the ML models
-4. Clustering
+3. Building the Classification models
+4. Building the Clustering models
 5. Testing the models
 6. Plotting graphs for analysis
 
