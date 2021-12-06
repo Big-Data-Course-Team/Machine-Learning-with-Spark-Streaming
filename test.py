@@ -29,6 +29,9 @@ from classification_models.passive_aggressive import *
 from clustering_models.kmeans_clustering import *
 from clustering_models.birch_clustering import *
 
+from sklearn.metrics import accuracy_score
+from sklearn.decomposition import PCA, TruncatedSVD
+
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -134,7 +137,7 @@ def process(rdd):
 	# ==================Data Cleaning + Test======================
 	df = df_preprocessing(df)
 	print('\nAfter cleaning:\n')
-	df.show()
+	#df.show()
 	# ============================================================
 	
 	
@@ -192,7 +195,7 @@ def process(rdd):
 	
 	accuracy_lr_3 = np.count_nonzero(np.array(pred_lr_3) == y_test)/y_test.shape[0]	
 	print("Accuracy of LR 3:", accuracy_lr_3)
-	with open('./test_eval_metrics/lr_1.txt', "a") as ma:
+	with open('./test_eval_metrics/lr_3.txt', "a") as ma:
 		ma.write(str(accuracy_lr_3)+'\n')
 
 	fper, tper, _ = roc_curve(y_test, pred_lr_3, pos_label=4) 
@@ -287,6 +290,15 @@ def process(rdd):
 	'''	
 	
 	# ==================Testing KMeans Model=======================
+	
+	svd = TruncatedSVD(n_components=2)
+	
+	with open('./test_kmeans_iteration', "r") as ni:
+		k_num_iters = int(ni.read())
+	k_num_iters += 1
+	with open('./test_kmeans_iteration', "w") as ni:
+		ni.write(str(k_num_iters))
+			
 	with open('./trained_models/kmeans_model.pkl', 'rb') as f:
 		kmeans_model = pickle.load(f)
 
@@ -303,6 +315,25 @@ def process(rdd):
 	with open('./test_eval_metrics/kmeans.txt', "a") as ma:
 		ip=str(accuracy_1_kmeans)+","+str(accuracy_2_kmeans)+'\n'
 		ma.write(ip)
+	
+	X_test_plot = svd.fit_transform(X_test)
+
+	figure, axis = plt.subplots(1, 2)
+	axis[0].scatter(X_test_plot[:, 0], X_test_plot[:, 1], c=predictions_kmeans)
+	axis[0].set_title('KMeans Clusters')
+	axis[0].set_xlabel('LDA1')
+	axis[0].set_ylabel('LDA2')
+	
+	axis[1].scatter(X_test_plot[:, 0], X_test_plot[:, 1], c=y_test)
+	axis[1].set_title('Original Labels')
+	axis[1].set_xlabel('LDA1')
+	axis[1].set_ylabel('LDA2')
+	
+	if not os.path.isdir('./test_cluster_plots'):
+		os.mkdir('./test_cluster_plots')
+
+	img_file = open("./test_cluster_plots/KMeans_Batch_" + str(k_num_iters), "wb+")
+	plt.savefig(img_file)
 	# ============================================================
 	
 
@@ -316,6 +347,9 @@ if __name__ == '__main__':
 	# Contains ROC curve plots for each classification model tested
 	if not os.path.isdir('./roc_curves'):
 		os.mkdir('./roc_curves')
+		
+	with open('./test_kmeans_iteration', "w") as ni:
+		ni.write('0')
 
 	# Create a DStream - represents the stream of data received from TCP source/data server
 	# Each record in 'lines' is a line of text
