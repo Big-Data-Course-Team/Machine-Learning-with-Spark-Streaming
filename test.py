@@ -195,7 +195,7 @@ def process(rdd):
 	
 	accuracy_lr_3 = np.count_nonzero(np.array(pred_lr_3) == y_test)/y_test.shape[0]	
 	print("Accuracy of LR 3:", accuracy_lr_3)
-	with open('./test_eval_metrics/lr_1.txt', "a") as ma:
+	with open('./test_eval_metrics/lr_3.txt', "a") as ma:
 		ma.write(str(accuracy_lr_3)+'\n')
 
 	fper, tper, _ = roc_curve(y_test, pred_lr_3, pos_label=4) 
