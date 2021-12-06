@@ -21,7 +21,9 @@ folder=args.batch_num
 
 folder_name='./'+folder+'/'
 
-plt.rcParams.update({'figure.figsize':(16, 9), 'figure.dpi':100})
+plt.rcParams.update({'figure.figsize':(14, 10), 'figure.dpi':100})
+plt.rcParams.update({'font.size': 14})
+
 
 i='lr'
 file_name_1 = i+'_'+'1'+'.txt'
@@ -38,16 +40,16 @@ acc_list_3 = acc_file_3.readlines()
 acc_list_3 = [float(i) for i in acc_list_3]
 iters=[i for i in range (1,len(acc_list_1)+1)]
 
-plt.plot(iters,acc_list_1,label='loss function -log');
-plt.plot(iters,acc_list_2,label='loss function -hinge');
-plt.plot(iters,acc_list_3,label='loss function -perceptron');
+plt.plot(iters,acc_list_1,label='loss function - log');
+plt.plot(iters,acc_list_2,label='loss function - hinge');
+plt.plot(iters,acc_list_3,label='loss function - perceptron');
 plt.xlabel('Iteration')
 plt.ylabel('Accuracy')
 plt.title("SGD Classifier")
 plt.legend()
 	
-img_file = open(folder_name + i, "wb+")
-plt.savefig(img_file)
+img_file = open(f'{folder_name + i}.eps', "wb+")
+plt.savefig(img_file, format='eps', bbox_inches='tight')
 plt.clf()
 
 
@@ -75,8 +77,8 @@ plt.ylabel('Accuracy')
 plt.title("Multinomial Naive Bayes Classifier")
 plt.legend()
 	
-img_file = open(folder_name + i, "wb+")
-plt.savefig(img_file)
+img_file = open(f'{folder_name + i}.eps', "wb+")
+plt.savefig(img_file, format='eps', bbox_inches='tight')
 plt.clf()
 
 
@@ -104,8 +106,8 @@ plt.ylabel('Accuracy')
 plt.title("Passive Aggressive Classifier")
 plt.legend()
 	
-img_file = open(folder_name + i, "wb+")
-plt.savefig(img_file)
+img_file = open(f'{folder_name + i}.eps', "wb+")
+plt.savefig(img_file, format='eps', bbox_inches='tight')
 plt.clf()
 
 
