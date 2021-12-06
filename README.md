@@ -2,21 +2,20 @@
 ### Current Repository Structure
 ```
 .
+├── Batch_1000
+├── Batch_2000
+├── Batch_2500
+├── Batch_3000
+├── Batch_4000
+├── Batch_5000
 ├── classification_models
 │   ├── logistic_regression.py
 │   ├── multinomial_nb.py
 │   ├── passive_aggressive.py
 ├── clustering_models
 │   ├── kmeans_clustering.py
-├── cluster_plots
-│   ├── Batch_1
-│   ├── Batch_2
-│   ├── Batch_3
-│   ├── Batch_4
-│   ├── Batch_5
+│   ├── birch_clustering.py│   
 ├── LICENSE
-├── model.pkl
-├── num_iters
 ├── preprocessing
 │   ├── preprocess.py
 ├── README.md
