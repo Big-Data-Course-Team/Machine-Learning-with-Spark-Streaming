@@ -17,7 +17,7 @@ Utilizing Spark Streaming to stream a corpus of tweets and their corresponding s
 │   ├── passive_aggressive.py
 ├── clustering_models
 │   ├── kmeans_clustering.py
-│   ├── birch_clustering.py│   
+│   ├── birch_clustering.py
 ├── preprocessing
 │   ├── preprocess.py
 ├── .gitignore
